@@ -28,6 +28,9 @@ additinal Python packages:
 * wikipedia   
     open a terminal and type
         `pip install wikipedia`
+* scikit-bio
+    open a terminal and type
+        `pip install scikit-bio`
 
 in Windows 'open terminal' means the anaconda terminal, on Mac and in Linux it is the "normal" terminal
 
