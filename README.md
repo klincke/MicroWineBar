@@ -2,6 +2,8 @@
 
 version 1.1
 
+Available from: https://github.com/klincke/MicroWineBar
+
 Author: Franziska Klincke
 
 Mail: klincke@bioinformatics.dt.dk
