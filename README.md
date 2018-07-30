@@ -6,7 +6,7 @@ Available from: https://github.com/klincke/MicroWineBar
 
 Author: Franziska Klincke
 
-Mail: klincke@bioinformatics.dt.dk
+Mail: klincke@bioinformatics.dtu.dk
 
 MicroWineBar is a graphical tool for analysing metagenomic sequencing samples. 
 MicorWineBar has to be installed locally.
