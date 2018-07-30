@@ -12,7 +12,7 @@ MicorWineBar has to be installed locally.
 Copyright (c) 2018 Franziska Klincke
 
 
-## Installing MicorWineBar
+## Installation
 
 prerequisites:
 python 3.6
@@ -34,16 +34,16 @@ treeinterpreter
 in Windows 'open terminal' means the anaconda terminal, on Mac and in Linux it is the "normal" terminal
 
 
-## Running MicroWineBar
+## Usage
 
 open terminal and move into the directory of the microwinebar.py script and type
     python microwinebar.py
 in case of several python versions one can also try 'python3 microwinebar.py'
 
 
-## Input to MicroWineBar
+## Input formats
 
-## Using another python version than anaconda
+## Using other python versions than anaconda
 
 It is possible to use other python versions but then one needs to install additional packages:
 * openpyxl
