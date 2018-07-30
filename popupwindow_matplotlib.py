@@ -69,7 +69,7 @@ class PopUpIncludingMatplotlib():
         #print(samples1)
         #print(samples2)
         #print(richness)
-        fig = Figure(figsize=(5,5), dpi=100)
+        fig = Figure(figsize=(5,5), dpi=120)
         ax = fig.add_subplot(111)
         #data = [df[df['year']=='2012']['richness'].values, df[df['year']=='2013']['richness'].values]
         data = [richness[samples1].values, richness[samples2].values]
@@ -108,7 +108,7 @@ class PopUpIncludingMatplotlib():
     def richness_all_samples(self, working_samples, samples_list, tax_level):
         self.create_window()
         
-        self.top.title('overview of richness and Shannon index of all samples on ' + tax_level + ' level')
+        self.top.title('overview of richness of all samples on ' + tax_level + ' level')
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=2, column=0, columnspan=4)
         
@@ -118,9 +118,16 @@ class PopUpIncludingMatplotlib():
             width = 1000
         
         start_idx = len(self.all_tax_levels) - list(self.all_tax_levels).index(tax_level)
-        richness = working_samples.astype(bool).sum(axis=0)[start_idx:-2]
+        if self.abundance_df.groupAbsoluteSamples() is not None:
+            absolute_working_samples = self.abundance_df.groupAbsoluteSamples()
+            absolute_working_samples = absolute_working_samples[samples_list].astype('int')
+            richness = absolute_working_samples.astype(bool).sum(axis=0)[:-2]
+        else:
+            richness = working_samples.astype(bool).sum(axis=0)[start_idx:-2]
         
-        fig = Figure(figsize=(4,6), dpi=100)
+        
+        
+        fig = Figure(figsize=(4,6), dpi=120)
         ax = fig.add_subplot(211)
         bp = ax.boxplot(richness)
         for val in richness:
@@ -181,7 +188,7 @@ class PopUpIncludingMatplotlib():
             shannon0 = pd.Series(shannon0, index=samples_list)
             #print('no absolute counts')
         
-        fig = Figure(figsize=(4,6), dpi=100)
+        fig = Figure(figsize=(4,6), dpi=120)
         ax = fig.add_subplot(211)
         bp = ax.boxplot(shannon0)
         for val, in zip(shannon0):
@@ -228,9 +235,9 @@ class PopUpIncludingMatplotlib():
             shannon0  = []
             for sample in sample_names:
                 shannon0.append(shannon_index(working_samples[sample].as_matrix()))
-            shannon0 = pd.Series(shannon0, index=samples_list)
+            shannon0 = pd.Series(shannon0, index=sample_names)
         
-        fig = Figure(figsize=(5,5), dpi=150)
+        fig = Figure(figsize=(5,5), dpi=120)
         ax = fig.add_subplot(111)
         data = [shannon0[samples1].values, shannon0[samples2].values]
         bp = ax.boxplot(data)
@@ -257,8 +264,7 @@ class PopUpIncludingMatplotlib():
         toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
         toolbar.update()
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
-        
-
+    
     def beta_diversity_heatmap(self, working_samples, samples_list, tax_level):
         """  """
         from skbio.diversity import beta_diversity
@@ -289,125 +295,8 @@ class PopUpIncludingMatplotlib():
             import matplotlib.pyplot as plt
             plt.close("all")
 
-            
-            # fig = Figure(figsize=(4,6), dpi=150)
-#
-#             ax = fig.add_subplot(121)
-#
-#             from scipy.cluster import hierarchy
-#             sim = 1 - bc_dm.data
-#             Z = hierarchy.linkage(sim, 'ward')
-#             hierarchy.dendrogram(
-#                 Z,
-#                 leaf_rotation=0.,  # rotates the x axis labels
-#                 leaf_font_size=10.,  # font size for the x axis labels
-#                 labels=bc_dm.ids,
-#                 orientation="left",
-#                 ax=ax
-#             )
-#
-#             ax = fig.add_subplot(122)
-#
-#             from matplotlib import rcParams
-#             rcParams.update({'figure.autolayout': True})
-#             #works
-#             im = ax.imshow(bc_dm.data, snap=True)
-#             ax.set_xticks(np.arange(bc_dm.data.shape[1]))
-#             ax.set_yticks(np.arange(bc_dm.data.shape[0]))
-#             ax.set_xticklabels(ids, {'fontsize':5}, rotation=90)
-#             ax.set_yticklabels(ids, {'fontsize':5})
-#             #fig.autofmt_xdate()
-#             cbar = ax.figure.colorbar(im, ax=ax) #add color bar
-#
-#
-#
-#             #g = sns.clustermap(data0.transpose(), metric="braycurtis", method="single", cmap="Blues")
-#             ##ax = sns.heatmap(bc_dm.data)
-#             #ax = g.ax_heatmap
-#             fig.subplots_adjust(left=0.1, right=0.98, bottom=0.3, top=0.95, hspace=0.3, wspace=0.3)
-#             matplotlib_frame = Frame(self.frame)
-#             matplotlib_frame.grid(row=0, column=0, rowspan=2, columnspan=2)
-#             canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
-#             canvas.draw()
-#             canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-#
-#             toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
-#             toolbar.update()
-#             canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
-            # #g.ax_col_dendrogram.bar(0, 0, color="white", label='vineyards')
-#
-#             self.create_window()
-#
-#             self.top.title('overview of beta diversity heatmap of all samples on ' + tax_level + ' level')
-#             self.inner_frame = Frame(self.frame)
-#             self.inner_frame.grid(row=2, column=0, columnspan=4)
-#
-#             from PIL import ImageTk, Image
-#             plt.savefig('plot.png')
-#             #plt.close()
-#             #img = ImageTk.PhotoImage(Image.open('plot.png'))
-#             #self.vis = Label(self.inner_frame,image=img)
-#             #self.vis.image = img
-#             #self.vis.grid(row=0,column=1)
-    
-    def rarefaction_curve(self, working_samples, samples_list, tax_level):
-        """ create a rarefaction curve """        
-        import ecopy as ep
         
-        #self.create_window()
-        #self.top.title('rarefaction curves of all samples on ' + tax_level + ' level')
-        #self.inner_frame = Frame(self.frame)
-        #self.inner_frame.grid(row=2, column=0, columnspan=4)
-        
-        #matplotlib_frame = Frame(self.frame)
-        #matplotlib_frame.grid(row=0, column=0, rowspan=2, columnspan=2)
-        
-        import numpy as np
-        from pandas import DataFrame
-        #from scipy.misc import comb
-        import matplotlib.pyplot as plt
-        
-        absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
-        absolut_working_samples = absolut_working_samples[samples_list].astype('int')
-        z = absolut_working_samples.copy().T
-        z.reset_index(inplace=True)
-        
-        z.apply(rCurve, axis=1)
-        
-        plt.xlabel('Number of Individuals')
-        plt.ylabel('Number of Species')
 
-        plt.savefig('test2.png')
-        
-        # if self.abundance_df.groupAbsoluteSamples() is not None:
-#             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
-#             absolut_working_samples = absolut_working_samples[samples_list].astype('int')
-#             #print(absolut_working_samples.iloc[1,:])
-#             rare_curve = ep.rarefy(absolut_working_samples.T, 'rarecurve', breakNA=False)
-#             rare = ep.rarefy(absolut_working_samples.T, 'rarefy')
-#         else:
-#             rare_curve = ep.rarefy(working_samples[samples_list].T, 'rarecurve', breakNA=False)
-#             rare = ep.rarefy(working_samples[samples_list].T, 'rarefy')
-#         print('type of rare_curve:')
-#         print(type(rare_curve))
-#         print(rare)
-        # fig = Figure(figsize=(4,6), dpi=100)
-#         ax = fig.add_subplot(211)
-#
-#         print('z:')
-#         print(z.head())
-#         print(z.loc[0])
-#         z.to_csv('z.csv')
-#         z.apply(rCurve, axis=1, args=(ax,))
-#
-#         #canvas = FigureCanvasTkAgg(rare_curve, matplotlib_frame)
-#         canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
-#         canvas.draw()
-#         canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-#
-#         toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
-#         toolbar.update()
-#         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
     
     def create_window(self):
         """ creates a popup window """
@@ -429,23 +318,3 @@ class PopUpIncludingMatplotlib():
     def cancel(self, event=None):
         """ destroys/closes pop up windows """
         self.top.destroy()
-
-def rCurve(x):
-    import matplotlib.pyplot as plt
-    ix = x['index']
-    z = x.drop('index').astype('float')
-    notabs = ~np.isnan(z)
-    y = z[notabs]
-    n = np.sum(y)
-    Sn = len(z)
-    iPred = np.linspace(0, n, 100)
-    yhat = [rareCurve_Func(i, Sn, n, y) for i in iPred]
-
-    plt.plot(iPred, yhat)
-    plt.text(iPred[-1], yhat[-1], str(ix), ha='left', va='center')
-    
-
-def rareCurve_Func(i, Sn, n, x):
-    from scipy.misc import comb
-    sBar = Sn -  np.sum(comb(n-x, i))/comb(n, i)
-    return sBar

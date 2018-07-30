@@ -305,7 +305,6 @@ class Interaction(Frame):
         self.overviewmenu.add_command(label='richness', command=self.richness_all_samples)
         self.overviewmenu.add_command(label='Shannon diversity', command=self.shannon_diversity_all_samples)
         self.overviewmenu.add_command(label='save beta diversity heatmap', command=self.beta_diversity_heatmap)
-        self.overviewmenu.add_command(label='rarefaction curve', command=self.rarefaction_curve)
         self.overviewmenu.add_command(label='compare two groups of samples', command=self.compare_groups)
         self.overviewmenu.add_command(label='correlation', command=self.correlate)
         self.overviewmenu.add_command(label='scatter plot', command=self.scatter_plot)
@@ -506,7 +505,7 @@ class Interaction(Frame):
         """  """
         idx = self.lbox.index("@%s,%s" % (event.x, event.y))
         name = self.lbox.get(idx)
-        print(self.all_tax_levels[self.all_tax_levels.index(self.get_current_tax_level()):])
+        #print(self.all_tax_levels[self.all_tax_levels.index(self.get_current_tax_level()):])
         tax_list = list(self.abundance_df.getDataframe().loc[name, self.all_tax_levels[self.all_tax_levels.index(self.get_current_tax_level()):]])
         popup_menu = PopUpMenu(self.parent, name, [], self.abundance_df, tax_list=tax_list, meta_df=None, all_tax_levels=self.all_tax_levels, current_tax_level=self.get_current_tax_level())
         popup_menu.do_popup(event, 1)
@@ -556,13 +555,6 @@ class Interaction(Frame):
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAllSamples()
         popup_matplotlib.beta_diversity_heatmap(working_samples, self.sample_names, self.get_current_tax_level())
-    
-    def rarefaction_curve(self):
-        """  """
-        popup_matplotlib = PopUpIncludingMatplotlib(self.parent, self.abundance_df, self.all_tax_levels)
-        if self.abundance_df is not None:
-            working_samples = self.abundance_df.groupAllSamples()
-        popup_matplotlib.rarefaction_curve(working_samples, self.sample_names, self.get_current_tax_level())
     
     def compare_groups(self):
         """ compare two presence/absence of species in two groups of samples """
@@ -744,7 +736,7 @@ class Interaction(Frame):
             self.abundance_df.addMasking()
             self.AddSamplesToMenu()
             self.ChooseSample()
-            for ind in xrange(len(self.sort_list)):
+            for ind in range(len(self.sort_list)):
                 self.sortmenu.add_radiobutton(label=self.sort_list[ind], 
                                             variable=self.sort_ind, 
                                             value=ind, 
