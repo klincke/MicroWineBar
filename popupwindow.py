@@ -78,54 +78,54 @@ class PopUpGraph():
         tax_l_var = StringVar(value=tuple(tax_list2))
         self.sort_lbox.config(listvariable=tax_l_var)
         
-    def compare_groups_old(self, abundance_df):
-        """ compares presence/absence of species in two groups of samples """
-        self.data = abundance_df.getPresenceAbsenceDF(self.threshold.get())
-        self.inner_frame.destroy()
-        self.inner_frame = Frame(self.frame)
-        self.inner_frame.grid(row=6, column=0, columnspan=6)
-        canvas = create_canvas(frame=self.inner_frame, col=0, height=300, width=500, xscroll=False, colspan=2)
-        canvas2 = create_canvas(frame=self.inner_frame, col=3, height=300, width=500, xscroll=False, colspan=2)
-        samples_1 = self.samples_lbox.curselection()
-        samples_2 = self.samples_lbox2.curselection()
-        if len(set(samples_1).intersection(set(samples_2))) > 0:
-            tmb.showinfo(title="error", 
-                        message="At least one sample is in both groups.\nPlease select unique samples for the two groups")
-            return
-        else:
-            compare_1 = self.data[self.samples_list[samples_1[0]]]
-            compare_2 = self.data[self.samples_list[samples_2[0]]]
-            print('compare_1')
-            print(compare_1)
-            print(self.data.columns)
-            print(self.data.index)
-            print('self.data.iloc[1,1]')
-            print(self.data.iloc[1,1])
-            for i in samples_1[1:]:
-                compare_1 = np.where(compare_1 == self.data[self.samples_list[i]], compare_1, -2)
-            for i in samples_2[1:]:
-                compare_2 = np.where(compare_2 == self.data[self.samples_list[i]], compare_2, -5)
-            compared = np.where(compare_1 == compare_2, compare_1, compare_1+compare_2-3)
-            index_present_both = np.where(compared == 1)[0]
-            index_present_only1 = np.where(compared == -2)[0]
-            
-            col = self.data.columns.tolist().index(self.samples_list[samples_1[0]])#1
-            group_1 = []
-            group_2 = []
-            for idx in index_present_only1:
-                if self.data.iloc[idx,col] == 1:
-                    group_1.append(self.data.index[idx])
-                else:
-                    group_2.append(self.data.index[idx])
-            if len(group_1)>0 or len(group_2)>0:
-                
-                pass
-            txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_1)) 
-            canvas.create_text(10,10, text=txt, tags='renew', anchor=NW)
-            canvas.config(scrollregion=[canvas.bbox(ALL)[0], canvas.bbox(ALL)[1], 500, canvas.bbox(ALL)[3]])
-            txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_2))
-            canvas2.create_text(10,10, text=txt, tags='renew', anchor=NW)
-            canvas2.config(scrollregion=[canvas2.bbox(ALL)[0], canvas2.bbox(ALL)[1], 500, canvas2.bbox(ALL)[3]])
+#     def compare_groups_old(self, abundance_df):
+#         """ compares presence/absence of species in two groups of samples """
+#         self.data = abundance_df.getPresenceAbsenceDF(self.threshold.get())
+#         self.inner_frame.destroy()
+#         self.inner_frame = Frame(self.frame)
+#         self.inner_frame.grid(row=6, column=0, columnspan=6)
+#         canvas = create_canvas(frame=self.inner_frame, col=0, height=300, width=500, xscroll=False, colspan=2)
+#         canvas2 = create_canvas(frame=self.inner_frame, col=3, height=300, width=500, xscroll=False, colspan=2)
+#         samples_1 = self.samples_lbox.curselection()
+#         samples_2 = self.samples_lbox2.curselection()
+#         if len(set(samples_1).intersection(set(samples_2))) > 0:
+#             tmb.showinfo(title="error",
+#                         message="At least one sample is in both groups.\nPlease select unique samples for the two groups")
+#             return
+#         else:
+#             compare_1 = self.data[self.samples_list[samples_1[0]]]
+#             compare_2 = self.data[self.samples_list[samples_2[0]]]
+#             print('compare_1')
+#             print(compare_1)
+#             print(self.data.columns)
+#             print(self.data.index)
+#             print('self.data.iloc[1,1]')
+#             print(self.data.iloc[1,1])
+#             for i in samples_1[1:]:
+#                 compare_1 = np.where(compare_1 == self.data[self.samples_list[i]], compare_1, -2)
+#             for i in samples_2[1:]:
+#                 compare_2 = np.where(compare_2 == self.data[self.samples_list[i]], compare_2, -5)
+#             compared = np.where(compare_1 == compare_2, compare_1, compare_1+compare_2-3)
+#             index_present_both = np.where(compared == 1)[0]
+#             index_present_only1 = np.where(compared == -2)[0]
+#
+#             col = self.data.columns.tolist().index(self.samples_list[samples_1[0]])#1
+#             group_1 = []
+#             group_2 = []
+#             for idx in index_present_only1:
+#                 if self.data.iloc[idx,col] == 1:
+#                     group_1.append(self.data.index[idx])
+#                 else:
+#                     group_2.append(self.data.index[idx])
+#             if len(group_1)>0 or len(group_2)>0:
+#
+#                 pass
+#             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_1))
+#             canvas.create_text(10,10, text=txt, tags='renew', anchor=NW)
+#             canvas.config(scrollregion=[canvas.bbox(ALL)[0], canvas.bbox(ALL)[1], 500, canvas.bbox(ALL)[3]])
+#             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_2))
+#             canvas2.create_text(10,10, text=txt, tags='renew', anchor=NW)
+#             canvas2.config(scrollregion=[canvas2.bbox(ALL)[0], canvas2.bbox(ALL)[1], 500, canvas2.bbox(ALL)[3]])
         
             
     def compare_groups(self, abundance_df, all_samples=True):
@@ -154,8 +154,8 @@ class PopUpGraph():
             else:
                 in_samples_1 = set(self.data[self.data[samples_1].sum(axis=1)>0].index)
                 in_samples_2 = set(self.data[self.data[samples_2].sum(axis=1)>0].index)
-            print(in_samples_1 - in_samples_2)
-            print(in_samples_2 - in_samples_1)
+            #print(in_samples_1 - in_samples_2)
+            #print(in_samples_2 - in_samples_1)
             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(in_samples_1 - in_samples_2)) 
             canvas.create_text(10,10, text=txt, tags='renew', anchor=NW)
             canvas.config(scrollregion=[canvas.bbox(ALL)[0], canvas.bbox(ALL)[1], 500, canvas.bbox(ALL)[3]])
@@ -1045,8 +1045,8 @@ class PopUpGraph():
         df2 = pd.DataFrame([richness, shannon], index=['richness','shannon_index'], columns=samples)
         df2 = df2.transpose()
         df2['group'] = np.array([self.samples1_label.get()]*len(samples_1) + [self.samples2_label.get()]*len(samples_2))
-        print('df2')
-        print(df2)
+        #print('df2')
+        #print(df2)
         
         #fig, ax = plt.subplots()
         fig = Figure(figsize=(5,7), dpi=100)
@@ -1572,7 +1572,7 @@ class PopUpWindow():
         self.frame.rowconfigure(1, weight=3)
         toggle_color = itertools.cycle(['olivedrab', 'darkolivegreen'])
         
-        print(abundances)
+        #print(abundances)
         width = round((WIDTH-70)/len(abundances))
         displaying_text = DisplayingText(self.root, canvas)
         for i, num in enumerate(abundances):
