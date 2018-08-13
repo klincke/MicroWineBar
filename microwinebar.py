@@ -305,10 +305,15 @@ class Interaction(Frame):
         self.overviewmenu.add_command(label='richness', command=self.richness_all_samples)
         self.overviewmenu.add_command(label='Shannon diversity', command=self.shannon_diversity_all_samples)
         self.overviewmenu.add_command(label='save beta diversity heatmap', command=self.beta_diversity_heatmap)
+
         self.overviewmenu.add_command(label='compare two groups of samples', command=self.compare_groups)
         self.overviewmenu.add_command(label='correlation', command=self.correlate)
         self.overviewmenu.add_command(label='scatter plot', command=self.scatter_plot)
         self.overviewmenu.add_command(label='filter', command=self.filter_all_samples)
+        with open('path.txt', 'r') as path_file:
+            r_path = path_file.readline().split('=')[1].strip().strip("'")
+        if r_path != '' and r_path is not None:
+            self.overviewmenu.add_command(label='rarafaction curve', command=self.r_rarefactioncurve)
         self.menu.add_cascade(label="About", menu=self.aboutmenu)
         self.aboutmenu.add_command(label="About", command=self.ShowAbout)
         self.aboutmenu.add_command(label="Help")
@@ -594,6 +599,50 @@ class Interaction(Frame):
         """ filter all samples (displayed)"""
         allsamples = AllSamples(self.parent, self.abundance_df, self.all_tax_levels, self.changed_filter_all_samples)
         self.ChooseSample()
+    
+    def write_rscript(self, filename):
+        """ writes the r script for creating a rarefaction curve """
+        with open('rscript.R', 'w') as r_file:
+            txt = """#R script 
+# load (and install) required packages
+if(!require(vegan)) install.packages("permute",repos = "http://cran.r-project.org")
+if(!require(vegan)) install.packages("mgcv",repos = "http://cran.r-project.org")
+if(!require(vegan)) install.packages("lattice",repos = "http://cran.r-project.org")
+if(!require(vegan)) install.packages("vegan",repos = "http://cran.r-project.org")
+# import the data
+absolute_counts <- read.csv("absolute_counts.csv", header=TRUE, row.names = 1)
+# rarefaction curve
+library("vegan")
+absolute_counts_df <- as.data.frame(t(absolute_counts))
+raremax <- min(rowSums(absolute_counts_df))
+pdf("{}")
+my_plot <- rarecurve(absolute_counts_df, step = 10000, sample = raremax, col = "blue", cex = 0.6)
+dev.off()
+""".format(filename)
+            r_file.write(txt)
+        
+    
+    def r_rarefactioncurve(self):
+        """ use R to create a rarefaction curve """
+        with open('path.txt', 'r') as path_file:
+            r_path = path_file.readline().split('=')[1].strip().strip("'")
+        if r_path != '' and r_path is not None:
+            
+            filename = asksaveasfilename(title = "Select file", initialfile='rarefactioncurve', filetypes = [('PDF', ".pdf")])
+            print(filename)
+            self.abundance_df.save_count_tables()
+            self.write_rscript(filename)
+            from pathlib import Path
+            
+            if os.path.isfile(str(Path(__file__).parent) + '/relative_counts.csv') and os.path.isfile(str(Path(__file__).parent) + '/rscript.R'):
+                print(r_path + " --file=rscript.R --vanilla --slave")
+                out = os.system(r_path + " --file=rscript.R --vanilla --slave")
+            os.remove('rscript.R')    
+            try:
+                os.remove(str(Path(__file__).parent) + '/relative_counts.csv')
+                os.remove(str(Path(__file__).parent) + '/absolute_counts.csv')
+            except FileNotFoundError:
+                pass
     
     def ShowAbout(self):
         """ shows information """

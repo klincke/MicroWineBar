@@ -502,12 +502,15 @@ class Abundances():
        
     def groupAbsoluteSamples(self):
         """ groups absolute abundances """
+        unmasked_tax = set(list(self.groupAllSamples(all_levels=self.tax_levels)[self.tax_level]))
         levels = self.tax_levels[self.tax_levels.index(self.tax_level):]
         if self.abundance_raw_df is not None:
             grouped = self.abundance_raw_df.groupby(levels, sort=False, as_index=False).sum()
-            grouped.index = range(len(grouped.index))
+            grouped.index = grouped[self.tax_level]
+            #grouped.index = range(len(grouped.index))
             #return grouped[grouped['masked'] == False]
-            return grouped
+            return grouped[grouped[self.tax_level].isin(unmasked_tax)]
+            #return grouped
         else:
             return None
        
@@ -701,13 +704,23 @@ class Abundances():
                 #print(str(round(c, 3)) + '\t' + org + '\t' + str(round(maximum,3)))
                 names_list.append([round(c, 3), org, round(maximum,3)])
         
-        return names_list 
-        
+        return names_list      
         
     def shape(self):
         """ gets the shape(dimensions) of the dataframe """
         return self.abundance_df.shape
         
+    def save_count_tables(self):
+        """  """
+        from pathlib import Path
+        path = Path(__file__).parent
+        #print(str(path) + '/relative_counts.csv')
+        if self.abundance_df is not None:
+            self.abundance_df[self.sample_names].to_csv(str(path) + '/relative_counts.csv')
+        if self.abundance_raw_df is not None:
+            self.abundance_raw_df[self.sample_names].to_csv(str(path) + '/absolute_counts.csv')
+        
+    
         
 class MetaData():
     #"class to "

@@ -221,8 +221,15 @@ class PopUpGraph():
         self.feature_selction_var = IntVar()
         feature_selction_check_button = Checkbutton(fsel_frame, text='feature selection', variable=self.feature_selction_var)
         feature_selction_check_button.grid(row=0, column=0, padx=5, pady=2)
-        random_forest_button = Button(fsel_frame, text='random forest', command=self.calculate_classification)
+        if len(samples_list) < 50:
+            random_forest_button = Button(fsel_frame, text='random forest', state=DISABLED, command=self.calculate_classification)
+        
+        else:
+            random_forest_button = Button(fsel_frame, text='random forest', command=self.calculate_classification)
         random_forest_button.grid(row=0, column=4, padx=5, pady=2)
+        
+        deseq_button = Button(fsel_frame, text='DESeq2', command=self.deseq2)
+        deseq_button.grid(row=0, column=5, padx=5, pady=2)
         
         correlation_frame = LabelFrame(self.frame, text='correlation', padx=10, pady=2)
         correlation_frame.grid(row=4, column=0, columnspan=3)
@@ -1153,6 +1160,47 @@ class PopUpGraph():
             item = self.wilcoxon_tree.insert('', 'end', iid=species,  values=[species,p_val,p_adj]+list(wilcox_df.loc[species])[3:])
         popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
         self.wilcoxon_tree.bind("<Double-Button-1>", lambda event, tree=self.wilcoxon_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
+
+    def deseq2(self):
+        """  """
+        from rpy2 import robjects
+        import rpy2.robjects.numpy2ri
+        robjects.numpy2ri.activate()
+        from rpy2.robjects.packages import importr
+        from rpy2.robjects import Formula
+        
+        deseq = importr('DESeq2')
+        
+        absolute_counts = self.abundance_df.groupAbsoluteSamples()
+        
+        if absolute_counts is not None:
+        
+            # Make the data frame
+            d = {}
+            samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
+            samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
+            samples = samples_1+samples_2
+        
+            absolute_counts = absolute_counts[samples]
+        
+            categories = (1,) * len(samples_1) + (2,) * len(samples_2)
+
+            d["group"] = robjects.IntVector(categories)
+            dataframe = robjects.DataFrame(d)
+
+            design = Formula("~ group")
+            dds = deseq.DESeqDataSetFromMatrix(countData=absolute_counts.values, colData=dataframe, design=design)
+            dds = deseq.DESeq(dds)
+            res = deseq.results(dds)
+
+            rownames = res.slots['rownames']
+            listdata = res.slots['listData']
+
+            listdata_array = np.array(listdata)
+            listdata_names_array = np.array(listdata.names)
+            df = pd.DataFrame(listdata_array.T, columns=listdata_names_array, index=absolute_counts.index)
+            filename = asksaveasfilename(title = "Select file", initialfile='deseq2_results', filetypes = [('CSV', ".csv")])
+            df.to_csv(filename)
 
     def richness_groups(self):
         """ creates a boxplot of the richness for each group of samples """
