@@ -179,7 +179,7 @@ class PopUpIncludingMatplotlib():
             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
             absolut_working_samples = absolut_working_samples[samples_list].astype('int')
             #print(absolut_working_samples.head())
-            shannon0 = absolut_working_samples.loc[working_samples.index].apply(shannon)
+            shannon0 = absolut_working_samples.loc[working_samples[tax_level]].apply(shannon)
             #print('missing')
         else:
             shannon0  = []
@@ -280,7 +280,7 @@ class PopUpIncludingMatplotlib():
         
         if self.abundance_df.groupAbsoluteSamples() is not None:
             data0 = self.abundance_df.groupAbsoluteSamples()[samples_list].astype('int')
-            data0 = data0.loc[working_samples.index]
+            data0 = data0.loc[working_samples[tax_level]]
             ids = list(data0.columns)
             data = data0.transpose().values.tolist()
 
