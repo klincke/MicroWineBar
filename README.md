@@ -31,6 +31,10 @@ additinal Python packages:
 * scikit-bio
     open a terminal and type
         `pip install scikit-bio`
+* rpy2
+    open a terminal and type
+    	`pip install rpy2`
+
 
 in Windows 'open terminal' means the anaconda terminal, on Mac and in Linux it is the "normal" terminal
 
