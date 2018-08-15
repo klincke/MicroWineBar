@@ -157,7 +157,7 @@ class AllSamples():
         indices = [self.tax_tree.item(item_id,'values')[1] for item_id in self.item_ids_set]
         colors_dict = dict((self.tax_tree.item(key,'text'),value) for (key,value) in self.colors_dict.items())
         self.abundance_df_instance.renewMasking(indices, colors_dict)
-        self.change_filter_all_samples(self.changed_filter_all_samples)
+        #self.change_filter_all_samples(self.changed_filter_all_samples)
         
     def reset(self):
         """ resets table (all shown) """
