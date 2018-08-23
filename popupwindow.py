@@ -304,7 +304,7 @@ class PopUpGraph():
                 y2 = height - working_samples.loc[idx, samples_list[j+1]]/max_height*height
                 coords = (x1, y1, x2, y2)
                 col = getColor(i, self.COLOR_SCHEME)
-                tag = idx
+                tag = working_samples.loc[idx, tax_level]
                 item = canvas.create_line(coords, width=3, fill=col, tags=tag)
                 self.balloon.tagbind(canvas, item, tag)
             #canvas.create_text(70+j*width,height+30, text=str(j+1))
@@ -837,15 +837,15 @@ class PopUpGraph():
         results_yscroll = Scrollbar(self.frame, orient=VERTICAL)
         results_yscroll.grid(column=5, row=1, rowspan=7, sticky = 'NW' + 'SW')
         filter_button = Button(self.frame, text='filter/sort results', command=self.filter_correlation)
-        filter_button.grid(column=0, row=8)
+        filter_button.grid(column=1, row=8)
         self.sort_var = StringVar()
         self.sort_combobox = Combobox(self.frame, textvariable=self.sort_var, exportselection=0, height=4, state='readonly')
         self.sort_combobox['values'] = ('name1', 'name2', 'correlation coefficient r', 'p value')
         #sort_combobox.bind('<<ComboboxSelected>>', function)
         self.sort_combobox.current(0)
-        self.sort_combobox.grid(column=2, row=8)
+        self.sort_combobox.grid(column=0, row=8)
         save_button = Button(self.frame, text='save to file')#, command=)
-        save_button.grid(column=1, row=8)
+        save_button.grid(column=2, row=8)
         self.root.option_add('*Listbox*Font', fonts_dict['listbox_font'])
         self.results_lbox = Listbox(self.frame, selectmode='multiple', exportselection=0, xscrollcommand=results_xscroll.set, yscrollcommand=results_yscroll.set, width=80)
         self.results_lbox.grid(column=4, row=1, rowspan=7, sticky='NWSE')
@@ -1169,6 +1169,10 @@ class PopUpGraph():
         from rpy2.robjects.packages import importr
         from rpy2.robjects import Formula
         
+        import warnings
+        from rpy2.rinterface import RRuntimeWarning
+        warnings.filterwarnings("ignore", category=RRuntimeWarning)
+        
         deseq = importr('DESeq2')
         
         absolute_counts = self.abundance_df.groupAbsoluteSamples()
@@ -1200,7 +1204,12 @@ class PopUpGraph():
             listdata_names_array = np.array(listdata.names)
             df = pd.DataFrame(listdata_array.T, columns=listdata_names_array, index=absolute_counts.index)
             filename = asksaveasfilename(title = "Select file", initialfile='deseq2_results', filetypes = [('CSV', ".csv")])
-            df.to_csv(filename)
+            if filename:
+                df.to_csv(filename)
+            
+            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+            popup_matplotlib.deseq2(df)
+            
 
     def richness_groups(self):
         """ creates a boxplot of the richness for each group of samples """
@@ -1433,6 +1442,10 @@ class PopUpGraph():
         self.draw_scatter_plot(canvas, 'PCo1 ('+pco1_prp_expl+'%)', 'PCo2 ('+pco2_prp_expl+'%)', pco1, pco2, sample_names, colours)
         self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
         
+        targets_names = [self.samples1_label.get() if item==0 else self.samples2_label.get() for item in targets]
+        popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+        #popup_matplotlib.pcoa(pco1, pco2, colours, self.samples1_label.get(), self.samples2_label.get(), targets_names)
+        popup_matplotlib.pcoa(pco1_group2, pco1_group1, pco2_group2, pco2_group1, self.samples1_label.get(), self.samples2_label.get())
         
     def do_pop_up(self, event, name):
         """ do popup """

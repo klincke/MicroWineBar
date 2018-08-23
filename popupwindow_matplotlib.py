@@ -149,7 +149,7 @@ class PopUpIncludingMatplotlib():
         ax.set_xlabel('samples')
         ax.set_ylabel('number of species')
         
-        fig.subplots_adjust(left=0.1, right=0.98, bottom=0.3, top=0.95, hspace=0.3, wspace=0.3)
+        fig.subplots_adjust(left=0.15, right=0.98, bottom=0.3, top=0.95, hspace=0.3, wspace=0.3)
         
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0, rowspan=2, columnspan=2)
@@ -178,8 +178,7 @@ class PopUpIncludingMatplotlib():
         if self.abundance_df.groupAbsoluteSamples() is not None:
             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
             absolut_working_samples = absolut_working_samples[samples_list].astype('int')
-            #print(absolut_working_samples.head())
-            shannon0 = absolut_working_samples.loc[working_samples[tax_level]].apply(shannon)
+            shannon0 = absolut_working_samples.loc[list(working_samples[tax_level])].apply(shannon)
             #print('missing')
         else:
             shannon0  = []
@@ -294,9 +293,60 @@ class PopUpIncludingMatplotlib():
             
             import matplotlib.pyplot as plt
             plt.close("all")
+    
+    #def pcoa(self, pco1, pco2, colours, samples1_label, samples2_label, targets_names):
+    def pcoa(self, pco1_group2, pco1_group1, pco2_group2, pco2_group1, samples1_label, samples2_label):
+    
+        self.create_window()
+        fig = Figure(figsize=(5,5), dpi=120)
+        ax = fig.add_subplot(111)
+    
+        ax.scatter(x=pco1_group1, y=pco2_group1, c='darkgreen', label=samples1_label)
+        ax.scatter(x=pco1_group2, y=pco2_group2, c='cornflowerblue', label=samples2_label)
+        ax.set_title('PCoA')
+        ax.legend(loc='best', shadow=False, scatterpoints=1)
+    
+        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.2, top=0.95, hspace=0.4, wspace=0.3)
+        matplotlib_frame = Frame(self.frame)
+        matplotlib_frame.grid(row=0, column=0)
+        canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
 
+        toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
+
+
+
+    def deseq2(self, df):
+        """  """    
+        import seaborn as sns
         
+        self.create_window()
+        
+        colors = []
+        for idx in df.index:
+            if abs(df.loc[idx, 'log2FoldChange']) > 2 and df.loc[idx, 'padj'] < 0.05:
+                colors.append('red')
+            else:
+                colors.append('black')
+        
+        fig = Figure(figsize=(5,5), dpi=120)
+        ax = fig.add_subplot(111)
+        ax.scatter(df['log2FoldChange'], df['padj'].apply(lambda x: -np.log10(x)), c=colors, marker='.')
+        ax.set_xlabel('$Log_2 fold change$')
+        ax.set_ylabel('$-log_{10} Q value$')
+        
+        matplotlib_frame = Frame(self.frame)
+        matplotlib_frame.grid(row=0, column=0)
+        canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
 
+        toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
     
     def create_window(self):
         """ creates a popup window """

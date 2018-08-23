@@ -71,7 +71,7 @@ class Abundances():
         if len(self.abundance_df.columns) == 0:
             self.abundance_df = pd.read_table(filename, header=0) #krona (no header, no index)
             cols = list(self.abundance_df.columns)
-            self.abundance_df = self.abundance_df[cols[0:2] + cols[:2:-1]]
+            self.abundance_df = self.abundance_df[cols[0:2] + cols[:1:-1]]
             self.tax_levels = self.abundance_df.columns.tolist()[2:]
             self.abundance_df = self.abundance_df[self.abundance_df.columns.tolist()[0:2] + self.tax_levels]
             self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
@@ -400,7 +400,7 @@ class Abundances():
                 name1 = group1.loc[idx, tax_level]
                 if name1 != '-':
                     max_name1 = max(abundance1)
-                    for j in xrange(i+1, len(group2.index)):
+                    for j in range(i+1, len(group2.index)):
                         jdx = group2.index[j]
                         abundance2 = group2.iloc[j, taxlevelnum:-1]
                         if len(abundance2[abundance2 > 0.00]) < min_samples:
@@ -493,6 +493,7 @@ class Abundances():
         else:
             levels = all_levels
         grouped = self.abundance_df.groupby(levels, sort=False, as_index=False).sum()
+        #print(grouped.head())
         if self.tax_level == self.tax_levels[0]:
             grouped['colour'] = list(self.abundance_df['colour'])
         else:

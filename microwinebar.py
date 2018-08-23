@@ -29,7 +29,7 @@ from general_functions import *
 from allsamples import AllSamples
 from popupwindow_matplotlib import PopUpIncludingMatplotlib
 
-
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class Interaction(Frame):
     def __init__(self, parent):
@@ -64,7 +64,10 @@ class Interaction(Frame):
         self.meta_df = None
         self.sample_names = None
         self.working_sample = None
-        self.os_windows = False
+        if platform() == 'Darwin':
+            self.os = True
+        else:
+            self.os = False
         self.always_together_id = None
         
         self.changed_filter_all_samples = IntVar()
@@ -259,7 +262,7 @@ class Interaction(Frame):
         self.preset_ind.set(0)
         self.checkDumped()
         self.menu.add_cascade(label="File", menu=self.filemenu)
-        if self.os_windows:
+        if not self.os:
             self.filemenu.add_command(label="Open sample(s)", command=self.OpenFiles, accelerator="Ctrl+o")
             self.bind_all("<Control-o>", self.OpenFiles)
             self.filemenu.add_command(label='Open MetsPhlan file(s)', command=self.OpenMetaPhlanFiles)
@@ -280,9 +283,7 @@ class Interaction(Frame):
         #write samples to table
         self.filemenu.add_command(label='write csv', command=self.writeCsv)
         self.filemenu.add_separator()
-        self.filemenu.add_command(label='Quit (dump)', 
-                                command=self.QuitProgram, 
-                                accelerator="Ctrl+q")
+        self.filemenu.add_command(label='Quit (dump)', command=self.QuitProgram, accelerator="Ctrl+q")
         self.bind_all("<Control-q>", self.QuitProgram)
         #self.filemenu.add_separator()
         self.filemenu.add_command(label='Quit and remove dump file', command=self.removeDump)
@@ -460,7 +461,7 @@ class Interaction(Frame):
                         tax_list=tax_list,
                         meta_df=self.meta_df,
                         all_tax_levels=self.all_tax_levels)
-            bar_id = g.drawBar(self.canvas, self.parent, self.balloon, self.os_windows)
+            bar_id = g.drawBar(self.canvas, self.parent, self.balloon, self.os)
             self.bar_ids.append(bar_id)
         y_axis_line = self.canvas.create_line(70,0,70,self.canvas_height-10)
         self.canvas.itemconfig(y_axis_line, tags=('y_axis'))
@@ -629,13 +630,13 @@ dev.off()
         if r_path != '' and r_path is not None:
             
             filename = asksaveasfilename(title = "Select file", initialfile='rarefactioncurve', filetypes = [('PDF', ".pdf")])
-            print(filename)
+            #print(filename)
             self.abundance_df.save_count_tables()
             self.write_rscript(filename)
             from pathlib import Path
             
             if os.path.isfile(str(Path(__file__).parent) + '/relative_counts.csv') and os.path.isfile(str(Path(__file__).parent) + '/rscript.R'):
-                print(r_path + " --file=rscript.R --vanilla --slave")
+                #print(r_path + " --file=rscript.R --vanilla --slave")
                 out = os.system(r_path + " --file=rscript.R --vanilla --slave")
             os.remove('rscript.R')    
             try:
@@ -930,13 +931,13 @@ def main():
     root.title('')
     
     #set window to focus when starting application
-    if platform() == 'Darwin':  # How Mac OS X is identified by Python
-        #system("""/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "python" to true' """)
-        pass
-    else:
-        root.focus_force()
-    if platform() == 'Windows':
-        self.os_windows = True
+    #if platform() == 'Darwin':  # How Mac OS X is identified by Python
+    #    #system("""/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "python" to true' """)
+    #    pass
+    #else:
+    #    root.focus_force()
+    #if platform() == 'Darwin':
+    #    self.os = True
     
     #root.wait_visibility()
     #root.event_generate('<Button-1>', x=0, y=0)    
