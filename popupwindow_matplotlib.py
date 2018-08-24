@@ -6,9 +6,6 @@ import pandas as pd
 import numpy as np
 import tkinter.messagebox as tmb
 
-#import matplotlib
-#matplotlib.use("TkAgg")
-
 from skbio.diversity.alpha import shannon
 
 from general_functions import *
@@ -59,16 +56,11 @@ class PopUpIncludingMatplotlib():
     #def richness_groups(self, working_samples, samples_list, tax_level):
     def richness_groups(self, working_samples, sample_names, tax_level, samples1, samples2, richness, samples1_label, samples2_label):
         """  """
-        #(self, df)
         
         self.create_window()
         
-        #print(working_samples.head())
         #working_samples.index = working_samples.loc[:,tax_level]
         #richness = working_samples.astype(bool).sum(axis=0)[:-1]
-        #print(samples1)
-        #print(samples2)
-        #print(richness)
         fig = Figure(figsize=(5,5), dpi=120)
         ax = fig.add_subplot(111)
         #data = [df[df['year']=='2012']['richness'].values, df[df['year']=='2013']['richness'].values]
@@ -228,7 +220,8 @@ class PopUpIncludingMatplotlib():
             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
             absolut_working_samples = absolut_working_samples[sample_names].astype('int')
             #print(absolut_working_samples.head())
-            shannon0 = absolut_working_samples.loc[working_samples.index].apply(shannon)
+            #shannon0 = absolut_working_samples.loc[working_samples.index].apply(shannon)
+            shannon0 = absolut_working_samples.loc[list(working_samples[tax_level])].apply(shannon)
             #print('missing')
         else:
             shannon0  = []
@@ -269,23 +262,13 @@ class PopUpIncludingMatplotlib():
         from skbio.diversity import beta_diversity
         import seaborn as sns
         
-        #from scipy.spatial.distance import squareform
-        
-        # self.create_window()
-        
-        # self.top.title('overview of Shannon index of all samples on ' + tax_level + ' level')
-        # self.inner_frame = Frame(self.frame)
-        # self.inner_frame.grid(row=2, column=0, columnspan=4)
-        
         if self.abundance_df.groupAbsoluteSamples() is not None:
             data0 = self.abundance_df.groupAbsoluteSamples()[samples_list].astype('int')
             data0 = data0.loc[working_samples[tax_level]]
             ids = list(data0.columns)
             data = data0.transpose().values.tolist()
 
-            #print(data)
             bc_dm = beta_diversity("braycurtis", data, ids)
-            #g = sns.clustermap(pd.DataFrame(bc_dm.data, index=ids, columns=ids), 'braycurtis')#, linewidths=.75, figsize=(30, 30), cmap="Oranges", row_colors=row_colors, col_colors=col_colors,)
 
             g = sns.clustermap(pd.DataFrame(bc_dm.data, index=ids, columns=ids), metric='braycurtis')
             filename = asksaveasfilename(initialfile='beta_diversity_heatmap', defaultextension='.png')
@@ -294,7 +277,6 @@ class PopUpIncludingMatplotlib():
             import matplotlib.pyplot as plt
             plt.close("all")
     
-    #def pcoa(self, pco1, pco2, colours, samples1_label, samples2_label, targets_names):
     def pcoa(self, pco1_group2, pco1_group1, pco2_group2, pco2_group1, samples1_label, samples2_label):
     
         self.create_window()

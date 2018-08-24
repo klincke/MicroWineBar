@@ -1,7 +1,3 @@
-#import matplotlib
-#matplotlib.use('TkAgg')
-#from matplotlib import pyplot as plt
-
 import os, sys
 from tkinter import *
 from tkinter.ttk import *
@@ -154,8 +150,6 @@ class PopUpGraph():
             else:
                 in_samples_1 = set(self.data[self.data[samples_1].sum(axis=1)>0].index)
                 in_samples_2 = set(self.data[self.data[samples_2].sum(axis=1)>0].index)
-            #print(in_samples_1 - in_samples_2)
-            #print(in_samples_2 - in_samples_1)
             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(in_samples_1 - in_samples_2)) 
             canvas.create_text(10,10, text=txt, tags='renew', anchor=NW)
             canvas.config(scrollregion=[canvas.bbox(ALL)[0], canvas.bbox(ALL)[1], 500, canvas.bbox(ALL)[3]])
@@ -338,8 +332,6 @@ class PopUpGraph():
         self.current_tax_level = current_tax_level
         self.new_samples_list = list(samples_list)
         self.all_sample_names = list(samples_list)
-        #from itertools import izip
-        #from itertools import zip
         
         self.create_window()
         #self.inner_frame = Frame(self.frame)
@@ -451,9 +443,6 @@ class PopUpGraph():
         self.frame.grid_rowconfigure(0, weight=1)
         #self.top.title(self.name)
         self.top.focus_set()
-    
-    # def add_title_to_canvas(self, canvas, colours, labels):
-    #     """  """
         
     
     def graph_groups(self, working_samples, graph):
@@ -465,7 +454,6 @@ class PopUpGraph():
         samples_1 = [self.samples_list[idx] for idx in self.samples_lbox.curselection()]
         samples_2 = [self.samples_list[idx] for idx in self.samples_lbox2.curselection()]
         if len(set(samples_1).intersection(set(samples_2))) > 0:
-            #print('error\ncannot compare samples that are in both groups at the same time\n')
             tmb.showinfo(title='error', message='cannot compare samples that are in both groups at the same time')
             return
         elif len(samples_1) > 25 or len(samples_2)> 25:
@@ -626,12 +614,10 @@ class PopUpGraph():
         org = self.sort_lbox.get(self.sort_lbox.curselection()[0])
         level = self.tax_level_lbox.get(self.tax_level_lbox.curselection()[0])
         indexes = self.working_samples[self.working_samples[level] == org].index.tolist()
-        #series = pd.Series([0.0]*len(self.new_samples_list), index=self.new_samples_list)
         series = pd.Series([0.0]*len(self.all_sample_names), index=self.all_sample_names)
 
         first_df = self.working_samples.loc[indexes,:]
         for idx in indexes:
-            #series = series.add(self.working_samples.loc[idx, self.new_samples_list])
             series = series.add(self.working_samples.loc[idx, self.all_sample_names])
 
         series = series.divide(self.working_samples.sum(axis=0, numeric_only=True)[:-1])
@@ -949,64 +935,7 @@ class PopUpGraph():
         except ValueError as error:
             print(error)
             tmb.showinfo(title="error", message=error)
-            
-    # #with species as id
-#     def calculate_classification(self):
-#         """ runs a random forest classification """
-#         self.inner_frame.destroy()
-#         self.inner_frame = Frame(self.frame)
-#         self.inner_frame.grid(row=6, column=0, columnspan=6)
-#         try:
-#             train_cols = [self.samples_list[x] for x in list(self.samples_lbox.curselection() + self.samples_lbox2.curselection())]
-#             if len(train_cols)<50:
-#                 raise ValueError("at least 50 samples are needed to run the random forest")
-#             test_cols = self.samples_list
-#             targets = [0]*len(self.samples_lbox.curselection()) + [1]*len(self.samples_lbox2.curselection())
-#             names_list = self.abundance_df.randomForestClassifier(train_cols, test_cols, targets, self.feature_selction_var.get(), float(self.threshold.get()))
-#
-#             #shuffle data
-#             from random import shuffle
-#             shuffle(targets)
-#             shuffled_names_list2 = self.abundance_df.randomForestClassifier(train_cols, test_cols, targets, self.feature_selction_var.get(), float(self.threshold.get()))
-#
-#             group1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
-#             group2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
-#             open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, group1, group2)
-#
-#             forest_df = pd.DataFrame(columns=['contribution', 'contribution_shuffled', 'max_abundance'])
-#             self.tree_frame = Frame(self.inner_frame)
-#             self.tree_frame.grid(row=1, column=0)
-#             self.forest_tree = Treeview(self.tree_frame, height='10', columns=list(forest_df.columns))#, show="headings", selectmode="extended")
-#             self.forest_tree.heading("#0", text='Species', anchor='w')#, command=lambda each="#0": self.treeview_sort_column(self.forest_tree, each, False))
-#             self.forest_tree.column("#0", anchor="w", width=250)
-#             for col in forest_df.columns:
-#                 self.forest_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.forest_tree, each, False))
-#                 self.forest_tree.column(col, anchor='w', width=120)
-#             self.forest_tree.grid(row=1, column=0, columnspan=5)
-#             treeScroll = Scrollbar(self.tree_frame, command=self.forest_tree.yview)
-#             treeScroll.grid(row=1, column=5, sticky='nsew')
-#             self.forest_tree.configure(yscrollcommand=treeScroll.set)
-#
-#             shuffled_names_dict2 = dict()
-#             for entry_list in shuffled_names_list2:
-#                 shuffled_names_dict2[entry_list[1]] = [entry_list[0], entry_list[2]]
-#             for i, entry in enumerate(names_list):
-#                 if 1:
-#                     try:
-#                         contribution3 = shuffled_names_dict2[entry[1]][0]
-#                     except:
-#                         contribution3 = 0.0
-#                     txt = '{:10.3f} {:20.3f} {:13.3f} {:55s}'.format(entry[0], contribution3, entry[2], '  '+entry[1]) + '\n'
-#                     forest_df.loc[entry[1]] = np.array([abs(entry[0]), abs(contribution3), entry[2]])
-#             for species in forest_df.index:
-#                 if forest_df.loc[species,'contribution'] > 0.001 or forest_df.loc[species,'contribution_shuffled'] > 0.001:
-#                     item = self.forest_tree.insert('', 'end', iid=species, text=species, values=list(forest_df.loc[species]))
-#
-#             popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.samples_list, self.abundance_df, groups=(group1, group2))
-#             self.forest_tree.bind("<Double-Button-1>", lambda event, tree=self.forest_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
-#         except ValueError as error:
-#             print(error)
-#             tmb.showinfo(title="error", message=error)     
+              
     
     def richness_groups_boxplot(self):
         """  """
@@ -1052,8 +981,6 @@ class PopUpGraph():
         df2 = pd.DataFrame([richness, shannon], index=['richness','shannon_index'], columns=samples)
         df2 = df2.transpose()
         df2['group'] = np.array([self.samples1_label.get()]*len(samples_1) + [self.samples2_label.get()]*len(samples_2))
-        #print('df2')
-        #print(df2)
         
         #fig, ax = plt.subplots()
         fig = Figure(figsize=(5,7), dpi=100)
@@ -1173,6 +1100,10 @@ class PopUpGraph():
         from rpy2.rinterface import RRuntimeWarning
         warnings.filterwarnings("ignore", category=RRuntimeWarning)
         
+        self.inner_frame.destroy()
+        self.inner_frame = Frame(self.frame)
+        self.inner_frame.grid(row=6, column=0, columnspan=6)
+        
         deseq = importr('DESeq2')
         
         absolute_counts = self.abundance_df.groupAbsoluteSamples()
@@ -1203,6 +1134,26 @@ class PopUpGraph():
             listdata_array = np.array(listdata)
             listdata_names_array = np.array(listdata.names)
             df = pd.DataFrame(listdata_array.T, columns=listdata_names_array, index=absolute_counts.index)
+        
+            self.tree_frame = Frame(self.inner_frame)
+            self.tree_frame.grid(row=1, column=0)
+            self.deseq_tree = Treeview(self.tree_frame, height='10', columns=[self.tax_level]+list(df.columns))#, show="headings", selectmode="extended")
+            self.deseq_tree.column("#0", anchor="w", width=0)
+            for col in [self.tax_level]+list(df.columns):
+                self.deseq_tree.heading(col,text=col.capitalize(), command=lambda each=col: self.treeview_sort_column(self.deseq_tree, each, False))
+                self.deseq_tree.column(col, anchor='w', width=90)
+            self.deseq_tree.column(self.tax_level, anchor='w', width=200)
+            self.deseq_tree.grid(row=1, column=0, columnspan=5)
+            treeScroll = Scrollbar(self.tree_frame, command=self.deseq_tree.yview)
+            treeScroll.grid(row=1, column=5, sticky='nsew')
+            self.deseq_tree.configure(yscrollcommand=treeScroll.set)
+            for species in df.index:
+                p_val = '{0:.0e}'.format(df.loc[species,'pvalue'])
+                p_adj = '{0:.0e}'.format(df.loc[species,'padj'])
+                item = self.deseq_tree.insert('', 'end', iid=species,  values=[species]+[round(item, 2) for item in list(df.loc[species])[:-2]]+[p_val, p_adj])
+            popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
+            self.deseq_tree.bind("<Double-Button-1>", lambda event, tree=self.deseq_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
+            
             filename = asksaveasfilename(title = "Select file", initialfile='deseq2_results', filetypes = [('CSV', ".csv")])
             if filename:
                 df.to_csv(filename)
@@ -1351,7 +1302,6 @@ class PopUpGraph():
         df = self.abundance_df.getDataframe()
         df = df[df['masked']==False]
         train = df.loc[:,train_cols]
-        #train_norm = scale(train.as_matrix())
         train_norm = scale(train.values)
         pca = PCA()
         reduced_data = pca.fit_transform(train_norm) #PCA SVD calculations
@@ -1360,14 +1310,10 @@ class PopUpGraph():
         sel = VarianceThreshold(threshold=(0.999 * (1 - 0.999)))
 
         if self.feature_selction_var.get():
-            #X_var = sel.fit_transform(np.transpose(train.as_matrix()))
             X_var = sel.fit_transform(np.transpose(train.values))
-            #new_names = df.loc[:,'species'].as_matrix()[sel.get_support()]
             new_names = df.loc[:,'species'].values[sel.get_support()]
         else:
-            #X_var = np.transpose(train.as_matrix())
             X_var = np.transpose(train.values)
-            #new_names = df.loc[:,'species'].as_matrix()
             new_names = df.loc[:,'species'].values
         X_varN = scale(X_var) #Scaled version of X_var
         #pca = PCA()
@@ -1379,12 +1325,6 @@ class PopUpGraph():
         pc2_expl_var = str(round(pc2_expl_var*100,2))
         sample_names = list(df.loc[:,train_cols].columns)
        
-        #j = 0
-        #targets
-        #for i, y_name in enumerate(sample_names):
-       #     print(y_name + '\t' + str(pc1[i]) + '\t' + str(pc2[i]))
-            #j += 1
-        #print()'')
         targets_bool = np.array(targets, dtype=bool)
         pc1_group2 = pc1[targets_bool]
         pc1_group1 = pc1[np.invert(targets_bool)]
@@ -1444,7 +1384,6 @@ class PopUpGraph():
         
         targets_names = [self.samples1_label.get() if item==0 else self.samples2_label.get() for item in targets]
         popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-        #popup_matplotlib.pcoa(pco1, pco2, colours, self.samples1_label.get(), self.samples2_label.get(), targets_names)
         popup_matplotlib.pcoa(pco1_group2, pco1_group1, pco2_group2, pco2_group1, self.samples1_label.get(), self.samples2_label.get())
         
     def do_pop_up(self, event, name):
@@ -1633,7 +1572,6 @@ class PopUpWindow():
         self.frame.rowconfigure(1, weight=3)
         toggle_color = itertools.cycle(['olivedrab', 'darkolivegreen'])
         
-        #print(abundances)
         width = round((WIDTH-70)/len(abundances))
         displaying_text = DisplayingText(self.root, canvas)
         for i, num in enumerate(abundances):
@@ -1809,7 +1747,6 @@ class PopUpWindow():
                 if toplevel == self.top:
                     self.pop_ups.remove((instance, toplevel))
         
-    #def create_correlation(self, text, corr_series, title, header=('species', 'correlation coefficient'),col2=400):
     def create_correlation(self, name, current_taxlevel, col2=400, meta=False):
         """ creates correlation coefficients for all species to the current species """
         if not meta:
@@ -1853,8 +1790,6 @@ class PopUpWindow():
             canvas.create_text(col2, 10, text=header[1], anchor=NW)
             corr_series.sort_values(ascending=False, inplace=True)
             for idx, name in enumerate(corr_series.index):
-                #txt = "%-*s%s" % (50, str(name), str(corr_series[name]))
-                #txt = "{:<50}{:}".format(str(name), str(corr_series[name]))
                 txt=str(name)
                 canvas.create_text(10,idx*15+30, text=txt, anchor=NW, width=WIDTH)
                 txt=str(corr_series[name])
@@ -2005,8 +1940,6 @@ class PopUpInfo():
     def groups_abundances(self, event=None):
         """ creates popup window for abundance graph for two groups """
         window = PopUpWindow(self.root, self.name)
-        #df = self.abundance_df.getDataframe()
-        #df2 = df.loc[df['species']==self.name]
         
         df = self.abundance_df.groupAllSamples()
         df = df[df.columns[:-1]]
