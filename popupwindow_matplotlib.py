@@ -16,6 +16,7 @@ matplotlib.use('TkAgg')
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+matplotlib.rcParams.update({'font.size': 10})
 
 from scipy.spatial.distance import squareform
 
@@ -58,35 +59,28 @@ class PopUpIncludingMatplotlib():
         """  """
         
         self.create_window()
+        self.top.title('Richness')
         
-        #working_samples.index = working_samples.loc[:,tax_level]
-        #richness = working_samples.astype(bool).sum(axis=0)[:-1]
-        fig = Figure(figsize=(5,5), dpi=120)
+        fig = Figure(figsize=(6,6), dpi=120)
         ax = fig.add_subplot(111)
-        #data = [df[df['year']=='2012']['richness'].values, df[df['year']=='2013']['richness'].values]
         data = [richness[samples1].values, richness[samples2].values]
         
         bp = ax.boxplot(data)
-        ax.set_xticklabels([samples1_label,samples2_label], rotation=45, fontsize=8)
-        ax.set_title('richness')
+        ax.set_xticklabels([samples1_label,samples2_label], rotation=45, fontsize=12)
+        ax.set_ylabel('richness', fontsize=12)
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        for group_num in [0, 1]:
-            ax.text(group_num+1, max(richness)*1.005, median_labels[group_num], horizontalalignment='center', size='x-small')
+        #for group_num in [0, 1]:
+        #    ax.text(group_num+1, max(richness)*1.005, median_labels[group_num], horizontalalignment='center', size='medium')
         
         #t-test (Wlech's-test does not assume equal variance)
         from scipy.stats import ttest_ind
         ttest_result = ttest_ind(richness[samples1].values, richness[samples2].values, equal_var=False)
-        ax.text(1.5, min(richness)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='x-small')
+        #ax.text(1.5, min(richness)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='medium')
         
-        #ax = fig.add_subplot(212)
-        #data = [df[df['year']=='2012']['shannon_index'].as_matrix(), df[df['year']=='2013']['shannon_index'].as_matrix()]
-        #ax.boxplot(data)
-        #ax.set_xticklabels(['2012','2013'], rotation=45, fontsize=8)
-        #ax.set_title('shannon_index')
-        #plt.show()
-        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.2, top=0.95, hspace=0.4, wspace=0.3)
+        #fig.subplots_adjust(left=0.08, right=0.92, bottom=0.2, top=0.95, hspace=0.4, wspace=0.4)
+        fig.subplots_adjust(left=0.1, right=0.92, bottom=0.2, top=0.97, hspace=0.4, wspace=0.4)
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0)
         canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
@@ -99,6 +93,7 @@ class PopUpIncludingMatplotlib():
     
     def richness_all_samples(self, working_samples, samples_list, tax_level):
         self.create_window()
+        self.top.title('Richness')
         
         self.top.title('overview of richness of all samples on ' + tax_level + ' level')
         self.inner_frame = Frame(self.frame)
@@ -132,7 +127,7 @@ class PopUpIncludingMatplotlib():
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        ax.text(1, max(richness)*1.01, median_labels[0], horizontalalignment='center', size='x-small')
+        ax.text(1, max(richness)*1.01, median_labels[0], horizontalalignment='center', size='medium')
         
         ax = fig.add_subplot(212)
         for i,val in enumerate(richness):
@@ -156,6 +151,7 @@ class PopUpIncludingMatplotlib():
     def shannon_diversity_all_samples(self, working_samples, samples_list, tax_level):
         from skbio.diversity.alpha import shannon
         self.create_window()
+        self.top.title('Shannon diversity')
         
         self.top.title('overview of Shannon index of all samples on ' + tax_level + ' level')
         self.inner_frame = Frame(self.frame)
@@ -171,13 +167,11 @@ class PopUpIncludingMatplotlib():
             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
             absolut_working_samples = absolut_working_samples[samples_list].astype('int')
             shannon0 = absolut_working_samples.loc[list(working_samples[tax_level])].apply(shannon)
-            #print('missing')
         else:
             shannon0  = []
             for sample in samples_list:
                 shannon0.append(shannon_index(working_samples[sample].as_matrix()))
             shannon0 = pd.Series(shannon0, index=samples_list)
-            #print('no absolute counts')
         
         fig = Figure(figsize=(4,6), dpi=120)
         ax = fig.add_subplot(211)
@@ -185,14 +179,13 @@ class PopUpIncludingMatplotlib():
         for val, in zip(shannon0):
             x = x = np.random.normal(1, 0.04, 1)
             ax.scatter(x, val, c='grey', marker='.', alpha=0.4)
-        #ax.set_title('Shannon diversity index')
         ax.set_xticklabels(['Shannon diversity'])
         #ax.set_ylabel('number of species')
         
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        ax.text(1, max(shannon0)*1.01, median_labels[0], horizontalalignment='center', size='x-small')
+        ax.text(1, max(shannon0)*1.01, median_labels[0], horizontalalignment='center', size='medium')
         
         ax = fig.add_subplot(212)
         for i,val in enumerate(shannon0):
@@ -215,38 +208,37 @@ class PopUpIncludingMatplotlib():
     def shannon_diversity_groups(self, working_samples, sample_names, tax_level, samples1, samples2, shannon1, samples1_label, samples2_label):
         """  """
         self.create_window()
+        self.top.title('Shannon diversity')
         
         if self.abundance_df.groupAbsoluteSamples() is not None:
             absolut_working_samples = self.abundance_df.groupAbsoluteSamples()
             absolut_working_samples = absolut_working_samples[sample_names].astype('int')
-            #print(absolut_working_samples.head())
             #shannon0 = absolut_working_samples.loc[working_samples.index].apply(shannon)
             shannon0 = absolut_working_samples.loc[list(working_samples[tax_level])].apply(shannon)
-            #print('missing')
         else:
             shannon0  = []
             for sample in sample_names:
                 shannon0.append(shannon_index(working_samples[sample].as_matrix()))
             shannon0 = pd.Series(shannon0, index=sample_names)
         
-        fig = Figure(figsize=(5,5), dpi=120)
+        fig = Figure(figsize=(6,6), dpi=120)
         ax = fig.add_subplot(111)
         data = [shannon0[samples1].values, shannon0[samples2].values]
         bp = ax.boxplot(data)
-        ax.set_xticklabels([samples1_label,samples2_label], rotation=45, fontsize=8)
-        ax.set_title('shannon')
+        ax.set_xticklabels([samples1_label,samples2_label], rotation=45, fontsize=12)
+        ax.set_ylabel('Shannon diversity', fontsize=12)
         
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        for group_num in [0, 1]:
-            ax.text(group_num+1, max(shannon0)*1.005, median_labels[group_num], horizontalalignment='center', size='x-small')
+        #for group_num in [0, 1]:
+        #    ax.text(group_num+1, max(shannon0)*1.005, median_labels[group_num], horizontalalignment='center', size='medium')
         
         from scipy.stats import ttest_ind
         ttest_result = ttest_ind(shannon0[samples1].values, shannon0[samples2].values, equal_var=False)
-        ax.text(1.5, min(shannon0)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='x-small')
+        #ax.text(1.5, min(shannon0)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='medium')
         
-        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.2, top=0.95, hspace=0.4, wspace=0.3)
+        fig.subplots_adjust(left=0.1, right=0.92, bottom=0.2, top=0.97, hspace=0.4, wspace=0.4)
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0)
         canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
@@ -269,26 +261,33 @@ class PopUpIncludingMatplotlib():
             data = data0.transpose().values.tolist()
 
             bc_dm = beta_diversity("braycurtis", data, ids)
-
-            g = sns.clustermap(pd.DataFrame(bc_dm.data, index=ids, columns=ids), metric='braycurtis')
-            filename = asksaveasfilename(initialfile='beta_diversity_heatmap', defaultextension='.png')
+            
+            g = sns.clustermap(pd.DataFrame(bc_dm.data, index=ids, columns=ids), metric='braycurtis', annot_kws={"size": 8})
+            filename = asksaveasfilename(title='Select file to save the beta diversity heatmap', initialfile='beta_diversity_heatmap', defaultextension='.png')
+            
             g.savefig(filename)
             
             import matplotlib.pyplot as plt
             plt.close("all")
     
-    def pcoa(self, pco1_group2, pco1_group1, pco2_group2, pco2_group1, samples1_label, samples2_label):
-    
+    def pcoa(self, pco1_group2, pco1_group1, pco2_group2, pco2_group1, samples1_label, samples2_label, pc_nums, pca=False):
+        
         self.create_window()
-        fig = Figure(figsize=(5,5), dpi=120)
+        self.top.title('PCoA - Principal Component Analysis')
+        fig = Figure(figsize=(6.15,6), dpi=120)
         ax = fig.add_subplot(111)
     
         ax.scatter(x=pco1_group1, y=pco2_group1, c='darkgreen', label=samples1_label)
         ax.scatter(x=pco1_group2, y=pco2_group2, c='cornflowerblue', label=samples2_label)
-        ax.set_title('PCoA')
+        #if pca:
+        #    ax.set_title('PCA')
+        #else:
+        #    ax.set_title('PCoA')
+        ax.set_xlabel('PC'+str(pc_nums[0]+1), fontsize=12)
+        ax.set_ylabel('PC'+str(pc_nums[1]+1), fontsize=12)
         ax.legend(loc='best', shadow=False, scatterpoints=1)
     
-        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.2, top=0.95, hspace=0.4, wspace=0.3)
+        fig.subplots_adjust(left=0.14, right=0.98, bottom=0.1, top=0.95, hspace=0.4, wspace=0.3)
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0)
         canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
@@ -301,11 +300,12 @@ class PopUpIncludingMatplotlib():
 
 
 
-    def deseq2(self, df):
+    def deseq2(self, df, label1, label2):
         """  """    
         import seaborn as sns
         
         self.create_window()
+        self.top.title('DESeq2 - Differential abundance')
         
         colors = []
         for idx in df.index:
@@ -314,11 +314,12 @@ class PopUpIncludingMatplotlib():
             else:
                 colors.append('black')
         
-        fig = Figure(figsize=(5,5), dpi=120)
+        fig = Figure(figsize=(6,6), dpi=120)
         ax = fig.add_subplot(111)
         ax.scatter(df['log2FoldChange'], df['padj'].apply(lambda x: -np.log10(x)), c=colors, marker='.')
-        ax.set_xlabel('$Log_2 fold change$')
+        ax.set_xlabel('$Log_2$'+'('+label1+'/'+label2+')')
         ax.set_ylabel('$-log_{10} Q value$')
+        fig.subplots_adjust(left=0.1, right=0.9, bottom=0.05, top=0.97, hspace=0.4, wspace=0.4)
         
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0)

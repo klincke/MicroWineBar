@@ -1,1 +1,1 @@
-r_path = '/usr/local/bin/R'
+r_path = ''

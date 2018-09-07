@@ -718,8 +718,10 @@ class Abundances():
         #print(str(path) + '/relative_counts.csv')
         if self.abundance_df is not None:
             self.abundance_df[self.sample_names].to_csv(str(path) + '/relative_counts.csv')
+            #self.abundance_df[self.abundance_df['masked']==False].loc[:,self.sample_names].to_csv(str(path) + '/relative_counts.csv')
         if self.abundance_raw_df is not None:
             self.abundance_raw_df[self.sample_names].to_csv(str(path) + '/absolute_counts.csv')
+            #self.abundance_raw_df[self.abundance_df['masked']==False].loc[:,self.sample_names].to_csv(str(path) + '/absolute_counts.csv')
         
     
         
