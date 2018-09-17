@@ -17,7 +17,6 @@ from platform import system as platform
 
 import Pmw
 import numpy as np
-from time import time, sleep
 
 from data import Abundances
 from data import MetaData

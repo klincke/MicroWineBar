@@ -19,7 +19,7 @@ from platform import system as platform
 from displaying2 import DisplayingText
 from popupwindow_matplotlib import PopUpIncludingMatplotlib
 
-import scholar
+#import scholar
 
 from random import shuffle
 

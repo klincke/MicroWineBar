@@ -3,7 +3,6 @@ import pandas as pd
 from openpyxl import workbook
 from openpyxl import load_workbook
 import numpy as np
-from math import sqrt, pow, fabs
 from scipy.stats import spearmanr
 
 
@@ -442,8 +441,7 @@ class Abundances():
                             corr_dict[(name1 ,name2)]['r'] = rho
                             corr_dict[(name1 ,name2)]['p'] = pval
                             k += 1
-                            #if fabs(rho) > float(r) and pval < float(p):
-                            #    print(name1 + '\t' + name2 + '\t' + str(rho) + '\t' + str(pval))
+
         return corr_df
 
     def getMaxAbundanceOfSample(self):
