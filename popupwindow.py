@@ -1180,8 +1180,6 @@ class PopUpGraph():
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
-        print(samples_1)
-        print(samples_2)
         label_1 = self.samples1_label.get()
         label_2 = self.samples2_label.get()
         
@@ -1190,7 +1188,6 @@ class PopUpGraph():
         
         mr_df = multiplicative_replacement(df.T)
         grouping = pd.Series([label_1] *len(samples_1) + [label_2] *len(samples_2), index=samples)
-        print(grouping)
         ancom_df, percentile_df = ancom(pd.DataFrame(mr_df, index=df.columns, columns=df.index), grouping, multiple_comparisons_correction='holm-bonferroni')
 
         self.tree_frame = Frame(self.inner_frame)
