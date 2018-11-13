@@ -44,7 +44,8 @@ open terminal and move into the MicroWineBar directory and type `python microwin
 
 ## Input formats
 
-tab delimited files
+Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Kraken or MetaPhlAn. These files contain absolute (and relative) abundances with taxonomic annotations. 
+
 
 ## Using other Python versions than anaconda
 
@@ -54,3 +55,7 @@ It is possible to use other Python versions but then one needs to install additi
 * pandas
 * scipy
 * scikit-learn
+
+
+## Example
+
