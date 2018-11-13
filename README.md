@@ -59,3 +59,6 @@ It is possible to use other Python versions but then one needs to install additi
 
 ## Example
 
+In the directory ExampleData one can find the first samples of the wine dataset from fermentations of Bobal grapes. These files were created with MGmapper and the running the script build_table_from_mgmapper_positive.py. 
+To analyse these files one has to start MicroWineBar and in the file-menu choose MGmapper files which opens a file dialog to open the files. 
+Then one should filter the non-microorganisms by clicking on the overview-menu and then choose filter. This opens a table with all species present in the samples. 
