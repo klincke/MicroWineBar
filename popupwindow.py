@@ -1180,17 +1180,19 @@ class PopUpGraph():
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
+        label_1 = self.samples1_label.get()
+        label_2 = self.samples2_label.get()
         
         open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
         df = self.abundance_df.groupAbsoluteSamples()[samples]
         
         mr_df = multiplicative_replacement(df.T)
-        grouping = pd.Series([self.samples1_label.get()] *len(samples_1) + [self.samples2_label.get()] *len(samples_2), index=samples)
+        grouping = pd.Series([label_1] *len(samples_1) + [label_1] *len(samples_2), index=samples)
         ancom_df, percentile_df = ancom(pd.DataFrame(mr_df, index=df.columns, columns=df.index), grouping, multiple_comparisons_correction='holm-bonferroni')
 
         self.tree_frame = Frame(self.inner_frame)
         self.tree_frame.grid(row=1, column=0)
-        columns = [self.tax_level2, 'W', self.samples1_label.get()+'_median', self.samples2_label.get()+'_median']
+        columns = [self.tax_level2, 'W', label_1+'_median', label_2+'_median']
         self.ancom_tree = Treeview(self.tree_frame, height='10', columns=columns)#, show="headings", selectmode="extended")
         self.ancom_tree.column("#0", anchor="w", width=0)
         
@@ -1206,11 +1208,11 @@ class PopUpGraph():
         percentiles = [0.0, 25.0, 50.0, 75.0, 100.0]
         columns2 =['W']
         for percentile in percentiles:
-            columns2 += ['{}_{}percentile'.format(self.samples1_label.get(), percentile), '{}_{}percentile'.format(self.samples2_label.get(), percentile)]
+            columns2 += ['{}_{}percentile'.format(label_1, percentile), '{}_{}percentile'.format(label_1, percentile)]
         results_df = pd.DataFrame(columns=columns2, index=sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index))
         for species in sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index):
-            values = [species, ancom_df.loc[species,'W'], '{0:.2e}'.format(percentile_df[50.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[50.0].loc[species,self.samples2_label.get()])]
-            values2 = ['{0:.2e}'.format(percentile_df[0.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[0.0].loc[species,self.samples2_label.get()]), '{0:.2e}'.format(percentile_df[25.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[25.0].loc[species,self.samples2_label.get()]), '{0:.2e}'.format(percentile_df[50.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[50.0].loc[species,self.samples2_label.get()]), '{0:.2e}'.format(percentile_df[75.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[75.0].loc[species,self.samples2_label.get()]), '{0:.2e}'.format(percentile_df[100.0].loc[species,self.samples1_label.get()]), '{0:.2e}'.format(percentile_df[100.0].loc[species,self.samples2_label.get()])]
+            values = [species, ancom_df.loc[species,'W'], '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2])]
+            values2 = ['{0:.2e}'.format(percentile_df[0.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[0.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_2])]
             results_df.loc[species] = [ancom_df.loc[species,'W']] + values2
             item = self.ancom_tree.insert('', 'end', iid=species,  values=values)
         popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))

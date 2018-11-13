@@ -148,8 +148,12 @@ class AllSamples():
         t = float(self.threshold.get())
         for item_id in self.item_ids_set.copy():
             if float(self.tax_tree.item(item_id,'values')[0]) < t:
-                self.tax_tree.delete(item_id)
+                #self.tax_tree.delete(item_id)
+                self.tax_tree.set(item_id,'masked', 'True')
                 self.item_ids_set.remove(item_id)
+            else:
+                self.tax_tree.set(item_id,'masked', 'False')
+                self.item_ids_set.add(item_id)
         self.number_of_species_label.config(text='number of species: '+str(len(self.item_ids_set)) + ' / ' + str(len(self.abundance_df.index)))
         
     def save_changes(self):
@@ -157,7 +161,7 @@ class AllSamples():
         indices = [self.tax_tree.item(item_id,'values')[1] for item_id in self.item_ids_set]
         colors_dict = dict((self.tax_tree.item(key,'text'),value) for (key,value) in self.colors_dict.items())
         self.abundance_df_instance.renewMasking(indices, colors_dict)
-        #self.change_filter_all_samples(self.changed_filter_all_samples)
+        self.change_filter_all_samples(self.changed_filter_all_samples)
         
     def reset(self):
         """ resets table (all shown) """
@@ -170,9 +174,9 @@ class AllSamples():
         self.number_of_species_label.config(text='number of species: '+str(len(self.item_ids_set)) + ' / ' + str(len(self.abundance_df.index)))
     
 
-    # def change_filter_all_samples(self, variable):
-    #     """  """
-    #     variable.set(randrange(0,1000))
+    def change_filter_all_samples(self, variable):
+        """  """
+        variable.set(randrange(0,1000))
         
     def select_colour(self, event):
         """ selects and sets the colour in the table """
