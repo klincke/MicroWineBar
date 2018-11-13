@@ -1,6 +1,4 @@
-### python3
-
-#!/usr/bin/python
+#!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 
 import os, sys
