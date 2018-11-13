@@ -38,7 +38,7 @@ additinal Python packages:
 
 ## Usage
 
-open terminal and move into the MicroWineBar directory and type `python microwinebar.py`
+open terminal and move into the MicroWineBar directory and type `python microwinebar.py` or `./microwinebar.py`
 , in case of several python versions one can also try `python3 microwinebar.py`
 
 
