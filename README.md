@@ -36,9 +36,6 @@ additinal Python packages:
     	`pip install rpy2`
 
 
-in Windows 'open terminal' means the anaconda terminal, on Mac and in Linux it is the "normal" terminal
-
-
 ## Usage
 
 open terminal and move into the MicroWineBar directory and type `python microwinebar.py`
@@ -46,6 +43,9 @@ open terminal and move into the MicroWineBar directory and type `python microwin
 
 
 ## Input formats
+
+Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Kraken or MetaPhlAn. These files contain absolute (and relative) abundances with taxonomic annotations. 
+
 
 ## Using other Python versions than anaconda
 
@@ -55,3 +55,7 @@ It is possible to use other Python versions but then one needs to install additi
 * pandas
 * scipy
 * scikit-learn
+
+
+## Example
+
