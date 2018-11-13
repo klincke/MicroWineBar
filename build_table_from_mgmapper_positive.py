@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.6
 
 #python build_table_from_mgmapper_positive.py bobal2012_0  --suffix .tab
 
@@ -36,13 +36,13 @@ for filename in glob.glob(os.path.join(path, sample + '*', 'stat/positive.specie
     myindex = list(sample_df.index)
     newindex = sorted(set([i for i in myindex if myindex.count(i)>1]))
     for idx in newindex:
-	newabundance = sum(list(sample_df.loc[idx,'R_Abundance (%)']))
+        newabundance = sum(list(sample_df.loc[idx,'R_Abundance (%)']))
         newrow = sample_df.loc[idx]
         newrow = newrow.iloc[0]
         newrow['R_Abundance (%)'] = newabundance
-	sample_df.drop([idx, idx], inplace=True)
-	sample_df = sample_df.append(newrow)
-    num_of_positive_files += 1
+        sample_df.drop([idx, idx], inplace=True)
+        sample_df = sample_df.append(newrow)
+        num_of_positive_files += 1
 try:
     sample_df = sample_df[columns_to_use[:-1]]
     sample_df = sample_df[sample_df['R_Abundance (%)'] >= 0.001]
