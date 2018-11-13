@@ -36,9 +36,6 @@ additinal Python packages:
     	`pip install rpy2`
 
 
-in Windows 'open terminal' means the anaconda terminal, on Mac and in Linux it is the "normal" terminal
-
-
 ## Usage
 
 open terminal and move into the MicroWineBar directory and type `python microwinebar.py`
@@ -46,6 +43,8 @@ open terminal and move into the MicroWineBar directory and type `python microwin
 
 
 ## Input formats
+
+tab delimited files
 
 ## Using other Python versions than anaconda
 
