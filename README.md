@@ -19,7 +19,7 @@ Copyright (c) 2018 Franziska Klincke
 prerequisites:	Python 3.6
 
 recommended is anaconda    
-    download from https://www.continuum.io/downloads and install as described there
+    download from https://www.anaconda.com/distribution/#download-section and install as described there
 
 additinal Python packages:
 * Pmw     
