@@ -8,7 +8,7 @@ import tkinter.messagebox as tmb
 
 from skbio.diversity.alpha import shannon
 
-from general_functions import *
+from .general_functions import *
 
 import matplotlib
 matplotlib.use('TkAgg')
