@@ -42,9 +42,9 @@ class AllSamples():
     
     def create_table(self):
         """ creates table for filtering """
-        self.tree_frame = ttk.Frame(self.frame)
+        self.tree_frame = Frame(self.frame)
         self.tree_frame.grid(row=0, column=0, columnspan=5)
-        self.tax_tree = ttk.Treeview(self.tree_frame, height='26', columns=['max_abundance']+self.all_tax_levels + ['masked', 'colour'])#, show="headings", selectmode="extended")
+        self.tax_tree = Treeview(self.tree_frame, height='26', columns=['max_abundance']+self.all_tax_levels + ['masked', 'colour'])#, show="headings", selectmode="extended")
         self.tax_tree.grid(row=1, column=0)
         treeScroll = Scrollbar(self.tree_frame, command=self.tax_tree.yview)
         treeScroll.grid(row=1, column=5, sticky='nsew')

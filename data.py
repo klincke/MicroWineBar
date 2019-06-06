@@ -33,7 +33,7 @@ class Abundances():
         tax_levels = None
         if len(self.abundance_df.columns) == 0:
             #abundance_df = pd.read_table(filename, header=None, index_col=0) #krona (no header, no index)
-            self.abundance_df = pd.read_table(filename, header=0, index_col=0)
+            self.abundance_df = pd.read_csv(filename, header=0, index_col=0, sep='\t')
             #try:
             #    int(abundance_df.values[0,0])
             #except:
@@ -52,7 +52,7 @@ class Abundances():
             tax_levels = list(self.abundance_df.columns)
             tax_levels.remove(sample_name)
         else:
-            sample_df = pd.read_table(filename, header=0, index_col=0)
+            sample_df = pd.read_csv(filename, header=0, index_col=0, sep='\t')
             sample_df = sample_df.rename(columns = {'abundance': sample_name})
             #sample_df.index = sample_df['species']
             sample_df.index = sample_df[self.tax_levels[0]]
@@ -68,29 +68,37 @@ class Abundances():
         """ adds a sample (as one column) to the dataframes for relative and raw counts"""
         tax_levels = None
         if len(self.abundance_df.columns) == 0:
-            self.abundance_df = pd.read_table(filename, header=0) #krona (no header, no index)
+            self.abundance_df = pd.read_csv(filename, header=0, sep='\t') #krona (no header, no index)
             cols = list(self.abundance_df.columns)
             self.abundance_df = self.abundance_df[cols[0:2] + cols[:1:-1]]
             self.tax_levels = self.abundance_df.columns.tolist()[2:]
             self.abundance_df = self.abundance_df[self.abundance_df.columns.tolist()[0:2] + self.tax_levels]
             self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-            
+            #self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)
+            #self.abundance_df.set_index(['{}_'.format(item) for item in self.tax_levels[0]], drop=False, inplace=True)
+
             self.abundance_raw_df = self.abundance_df.loc[:,[self.abundance_df.columns[1]] + self.tax_levels]
             self.abundance_raw_df.rename(columns={self.abundance_raw_df.columns[0]:sample_name}, inplace=True)
             self.abundance_df = self.abundance_df.loc[:,[self.abundance_df.columns[0]] + self.tax_levels]
         else:
-            sample_df = pd.read_table(filename, header=0)
+            sample_df = pd.read_csv(filename, header=0, sep='\t')
             sample_raw_df = sample_df.loc[:,[sample_df.columns[1]]+self.tax_levels]
             sample_raw_df.rename(columns={sample_raw_df.columns[0]:sample_name}, inplace=True)  
-            sample_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True)
+            #sample_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True)
             sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)  
-            sample_df.set_index(self.tax_levels[0], drop=False, inplace=True)
+            #sample_df.set_index(self.tax_levels[0], drop=False, inplace=True)
+            #sample_df.set_index(['{}_'.format(item) for item in self.tax_levels[0]], drop=False, inplace=True)
+
+            #print(self.abundance_df.head())
+            #print(sample_df.head())
+            #print(self.tax_levels)
             self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=self.tax_levels)
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)   
+            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)  
+            self.abundance_df.index.names = [None] 
             self.abundance_df.fillna(value=0, inplace=True) 
             self.abundance_raw_df = pd.merge(self.abundance_raw_df, sample_raw_df, how='outer', on=self.tax_levels)
-            self.abundance_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True)   
+            self.abundance_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True) 
+            self.abundance_raw_df.index.names = [None]  
             self.abundance_raw_df.fillna(value=0, inplace=True)
         self.abundance_df[sample_name] = self.abundance_df[sample_name].astype(float)
         self.abundance_raw_df[sample_name] = self.abundance_raw_df[sample_name].astype(float)
@@ -114,7 +122,7 @@ class Abundances():
         tax_levels = None
         #self.header_present = False
         if len(self.abundance_df.columns) == 0:
-            self.abundance_df = pd.read_table(filename, header=None)#, index_col=0) #krona (no header, no index)
+            self.abundance_df = pd.read_csv(filename, header=None, sep='\t')#, index_col=0) #krona (no header, no index)
             #print(self.abundance_df.columns)
             #cols = self.abundance_df.columns
             #self.abundance_df = self.abundance_df[cols[0]+cols[1::-1]]
@@ -145,7 +153,7 @@ class Abundances():
             #print(self.abundance_df.index)
         else:
             #print(self.header_present)
-            sample_df = pd.read_table(filename, header=None)#, index_col=0)
+            sample_df = pd.read_csv(filename, header=None, sep='\t')#, index_col=0)
             if self.header_present:
                 sample_df.columns = sample_df.iloc[0]
                 sample_df = sample_df[1:]
@@ -463,6 +471,7 @@ class Abundances():
         self.sample = self.sample[self.sample[sample_name] > 0]
         self.sample = self.sample.rename(columns = {sample_name: 'abundance'})
         self.sample[self.sample['masked']==False]
+        self.sample.index.names = [None]
         
     def getSamplesList(self):
         """ gets the list of samples (currently loaded) """
@@ -471,6 +480,8 @@ class Abundances():
     def getWorkingSample(self, tax_level, as_index=False):
         """ gets sample grouped on current tax_level """
         levels = self.tax_levels[self.tax_levels.index(tax_level):]
+        #print(self.sample.head())
+        #print(levels)
         grouped = self.sample.groupby(levels, sort=False, as_index=as_index).sum()#['abundance']
         grouped.index = range(len(grouped.index))
         self.tax_level = tax_level
