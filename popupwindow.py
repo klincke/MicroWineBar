@@ -14,7 +14,7 @@ from decimal import Decimal
 #from sklearn import decomposition
 
 from .general_functions import *
-from .platform import system as platform
+from platform import system as platform
 
 from .displaying2 import DisplayingText
 from .popupwindow_matplotlib import PopUpIncludingMatplotlib
