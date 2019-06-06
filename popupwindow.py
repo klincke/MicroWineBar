@@ -13,11 +13,11 @@ from decimal import Decimal
 
 #from sklearn import decomposition
 
-from general_functions import *
-from platform import system as platform
+from .general_functions import *
+from .platform import system as platform
 
-from displaying2 import DisplayingText
-from popupwindow_matplotlib import PopUpIncludingMatplotlib
+from .displaying2 import DisplayingText
+from .popupwindow_matplotlib import PopUpIncludingMatplotlib
 
 #import scholar
 

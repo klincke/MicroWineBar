@@ -1,7 +1,7 @@
 from tkinter import *
 import numpy as np
-from popupwindow import PopUpWindow
-from popupwindow import PopUpMenu
+from .popupwindow import PopUpWindow
+from .popupwindow import PopUpMenu
 
 class Displaying():
     #"to display the abundance and taxonomy"

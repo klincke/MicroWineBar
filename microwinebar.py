@@ -16,15 +16,15 @@ from platform import system as platform
 import Pmw
 import numpy as np
 
-from data import Abundances
-from data import MetaData
-from displaying import Displaying
-from popupwindow import PopUpWindow
-from popupwindow import PopUpGraph
-from popupwindow import PopUpMenu
-from general_functions import *
-from allsamples import AllSamples
-from popupwindow_matplotlib import PopUpIncludingMatplotlib
+from .data import Abundances
+from .data import MetaData
+from .displaying import Displaying
+from .popupwindow import PopUpWindow
+from .popupwindow import PopUpGraph
+from .popupwindow import PopUpMenu
+from .general_functions import *
+from .allsamples import AllSamples
+from .popupwindow_matplotlib import PopUpIncludingMatplotlib
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
@@ -309,8 +309,9 @@ class Interaction(Frame):
         self.overviewmenu.add_command(label='correlation', command=self.correlate)
         self.overviewmenu.add_command(label='scatter plot', command=self.scatter_plot)
         self.overviewmenu.add_command(label='filter', command=self.filter_all_samples)
-        with open('path.txt', 'r') as path_file:
-            r_path = path_file.readline().split('=')[1].strip().strip("'")
+        #with open('path.txt', 'r') as path_file:
+        #    r_path = path_file.readline().split('=')[1].strip().strip("'")
+        rpath = ''
         if r_path != '' and r_path is not None:
             self.overviewmenu.add_command(label='rarafaction curve', command=self.r_rarefactioncurve)
         self.menu.add_cascade(label="About", menu=self.aboutmenu)
