@@ -8,7 +8,7 @@ import tkinter.messagebox as tmb
 
 from skbio.diversity.alpha import shannon
 
-from .general_functions import *
+from .desegeneral_functions import *
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -288,39 +288,6 @@ class PopUpIncludingMatplotlib():
         ax.legend(loc='best', shadow=False, scatterpoints=1)
     
         fig.subplots_adjust(left=0.14, right=0.98, bottom=0.1, top=0.95, hspace=0.4, wspace=0.3)
-        matplotlib_frame = Frame(self.frame)
-        matplotlib_frame.grid(row=0, column=0)
-        canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-
-        toolbar = NavigationToolbar2Tk(canvas, matplotlib_frame)
-        toolbar.update()
-        canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
-
-
-
-    def deseq2(self, df, label1, label2):
-        """  """    
-        import seaborn as sns
-        
-        self.create_window()
-        self.top.title('DESeq2 - Differential abundance')
-        
-        colors = []
-        for idx in df.index:
-            if abs(df.loc[idx, 'log2FoldChange']) > 2 and df.loc[idx, 'padj'] < 0.05:
-                colors.append('red')
-            else:
-                colors.append('black')
-        
-        fig = Figure(figsize=(6,6), dpi=120)
-        ax = fig.add_subplot(111)
-        ax.scatter(df['log2FoldChange'], df['padj'].apply(lambda x: -np.log10(x)), c=colors, marker='.')
-        ax.set_xlabel('$Log_2$'+'('+label1+'/'+label2+')')
-        ax.set_ylabel('$-log_{10} Q value$')
-        fig.subplots_adjust(left=0.1, right=0.9, bottom=0.05, top=0.97, hspace=0.4, wspace=0.4)
-        
         matplotlib_frame = Frame(self.frame)
         matplotlib_frame.grid(row=0, column=0)
         canvas = FigureCanvasTkAgg(fig, matplotlib_frame)
