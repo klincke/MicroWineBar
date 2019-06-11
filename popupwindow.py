@@ -131,15 +131,18 @@ class PopUpGraph():
         self.inner_frame.destroy()
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=6, column=0, columnspan=6)
-        canvas = create_canvas(frame=self.inner_frame, col=0, height=300, width=500, xscroll=False, colspan=2)
-        canvas2 = create_canvas(frame=self.inner_frame, col=3, height=300, width=500, xscroll=False, colspan=2)
+        
         samples_1_idx = self.samples_lbox.curselection()
         samples_2_idx = self.samples_lbox2.curselection()
         if len(set(samples_1_idx).intersection(set(samples_2_idx))) > 0:
-            tmb.showinfo(title="error", 
-                        message="At least one sample is in both groups.\nPlease select unique samples for the two groups")
+            tmb.showerror(title="error", message="At least one sample is in both groups.\nPlease select unique samples for the two groups")
+            return
+        elif len(samples_1_idx) < 1 or len(samples_2_idx) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
             return
         else:
+            canvas = create_canvas(frame=self.inner_frame, col=0, height=300, width=500, xscroll=False, colspan=2)
+            canvas2 = create_canvas(frame=self.inner_frame, col=3, height=300, width=500, xscroll=False, colspan=2)
 
             samples_1 = [self.samples_list[idx] for idx in samples_1_idx]
             samples_2 = [self.samples_list[idx] for idx in samples_2_idx]
@@ -263,10 +266,10 @@ class PopUpGraph():
         """ creates the overview line graph """
         self.create_window()
         if len(samples_list)<2:
-            tmb.showinfo(title="error", message='not enough samples')
+            tmb.showerror(title="error", message='not enough samples')
             return
         elif len(samples_list) > 25:
-            tmb.showinfo(title="error", message='too many samples')
+            tmb.showerror(title="error", message='too many samples')
             return
         self.top.title('overview of all samples on ' + tax_level + ' level')
         self.inner_frame = Frame(self.frame)
@@ -420,7 +423,7 @@ class PopUpGraph():
                 self.redraw_bars(canvas)
             self.first_stacked_bar = False
         except ValueError as error:
-            tmb.showinfo(title="error", message=error)
+            tmb.showerror(title="error", message=error)
         
     def highlight_bars_black(self, event, canvas):
         """ hilights bars of the stacked bargraph """
@@ -459,10 +462,13 @@ class PopUpGraph():
         samples_1 = [self.samples_list[idx] for idx in self.samples_lbox.curselection()]
         samples_2 = [self.samples_list[idx] for idx in self.samples_lbox2.curselection()]
         if len(set(samples_1).intersection(set(samples_2))) > 0:
-            tmb.showinfo(title='error', message='cannot compare samples that are in both groups at the same time')
+            tmb.showerror(title='error', message='cannot compare samples that are in both groups at the same time')
             return
         elif len(samples_1) > 25 or len(samples_2)> 25:
-            tmb.showinfo(title='error', message='too many samples in (at least) one group')
+            tmb.showerror(title='error', message='too many samples in (at least) one group')
+            return
+        elif len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
             return
         else:
             if graph == 'line':
@@ -939,7 +945,7 @@ class PopUpGraph():
             self.forest_tree.bind("<Double-Button-1>", lambda event, tree=self.forest_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
         except ValueError as error:
             print(error)
-            tmb.showinfo(title="error", message=error)
+            tmb.showerror(title="error", message=error)
               
     
     def richness_groups_boxplot(self):
@@ -1055,43 +1061,49 @@ class PopUpGraph():
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
-        open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
-         
-        df = df.loc[:,samples]
-        data_intersection = df.loc[(df!=0).all(1)]
-        group_i1 = data_intersection.loc[:,samples_1]
-        group_i2 = data_intersection.loc[:,samples_2]
+        
+        if len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
+        else:
 
-        wilcox_df = pd.DataFrame(index=group_i1.index, columns=[self.tax_level, 'p_val', 'p_adj', 't_stat', 'max_abundance', 'var_'+self.samples1_label.get(), 'var_'+self.samples2_label.get(), 'mean_'+self.samples1_label.get(), 'mean_'+self.samples2_label.get()])
-        for species in group_i1.index:
-            x = group_i1.loc[species].values
-            y = group_i2.loc[species].values
-            t_stat, p_val = ranksums(x,y)
-            wilcox_df.loc[species] = np.array([species, p_val, None, round(t_stat,3), round(max(x.max(), y.max()),3), round(x.var(),3), round(y.var(),3), round(x.mean(),3), round(y.mean(),3)])
+            open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
+         
+            df = df.loc[:,samples]
+            data_intersection = df.loc[(df!=0).all(1)]
+            group_i1 = data_intersection.loc[:,samples_1]
+            group_i2 = data_intersection.loc[:,samples_2]
+
+            wilcox_df = pd.DataFrame(index=group_i1.index, columns=[self.tax_level, 'p_val', 'p_adj', 't_stat', 'max_abundance', 'var_'+self.samples1_label.get(), 'var_'+self.samples2_label.get(), 'mean_'+self.samples1_label.get(), 'mean_'+self.samples2_label.get()])
+            for species in group_i1.index:
+                x = group_i1.loc[species].values
+                y = group_i2.loc[species].values
+                t_stat, p_val = ranksums(x,y)
+                wilcox_df.loc[species] = np.array([species, p_val, None, round(t_stat,3), round(max(x.max(), y.max()),3), round(x.var(),3), round(y.var(),3), round(x.mean(),3), round(y.mean(),3)])
             
-        p_adj = p_adjust_bh(wilcox_df['p_val'])
-        wilcox_df['p_adj'] = p_adj
+            p_adj = p_adjust_bh(wilcox_df['p_val'])
+            wilcox_df['p_adj'] = p_adj
         
-        self.tree_frame = Frame(self.inner_frame)
-        self.tree_frame.grid(row=1, column=0)
-        self.wilcoxon_tree = Treeview(self.tree_frame, height='10', columns=list(wilcox_df.columns))#, show="headings", selectmode="extended")
-        self.wilcoxon_tree.column("#0", anchor="w", width=0)
+            self.tree_frame = Frame(self.inner_frame)
+            self.tree_frame.grid(row=1, column=0)
+            self.wilcoxon_tree = Treeview(self.tree_frame, height='10', columns=list(wilcox_df.columns))#, show="headings", selectmode="extended")
+            self.wilcoxon_tree.column("#0", anchor="w", width=0)
         
-        for col in wilcox_df.columns:
-            self.wilcoxon_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.wilcoxon_tree, each, False))
-            self.wilcoxon_tree.column(col, anchor='w', width=90)
-        self.wilcoxon_tree.column(wilcox_df.columns[0], anchor='w', width=200)
-        self.wilcoxon_tree.grid(row=1, column=0, columnspan=5)
-        treeScroll = Scrollbar(self.tree_frame, command=self.wilcoxon_tree.yview)
-        treeScroll.grid(row=1, column=5, sticky='nsew')
-        self.wilcoxon_tree.configure(yscrollcommand=treeScroll.set)
+            for col in wilcox_df.columns:
+                self.wilcoxon_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.wilcoxon_tree, each, False))
+                self.wilcoxon_tree.column(col, anchor='w', width=90)
+            self.wilcoxon_tree.column(wilcox_df.columns[0], anchor='w', width=200)
+            self.wilcoxon_tree.grid(row=1, column=0, columnspan=5)
+            treeScroll = Scrollbar(self.tree_frame, command=self.wilcoxon_tree.yview)
+            treeScroll.grid(row=1, column=5, sticky='nsew')
+            self.wilcoxon_tree.configure(yscrollcommand=treeScroll.set)
         
-        for species in wilcox_df[wilcox_df['p_adj']<1].index:
-            p_val = '{0:.0e}'.format(wilcox_df.loc[species,'p_val'])
-            p_adj = '{0:.0e}'.format(wilcox_df.loc[species,'p_adj'])
-            item = self.wilcoxon_tree.insert('', 'end', iid=species,  values=[species,p_val,p_adj]+list(wilcox_df.loc[species])[3:])
-        popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
-        self.wilcoxon_tree.bind("<Double-Button-1>", lambda event, tree=self.wilcoxon_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
+            for species in wilcox_df[wilcox_df['p_adj']<1].index:
+                p_val = '{0:.0e}'.format(wilcox_df.loc[species,'p_val'])
+                p_adj = '{0:.0e}'.format(wilcox_df.loc[species,'p_adj'])
+                item = self.wilcoxon_tree.insert('', 'end', iid=species,  values=[species,p_val,p_adj]+list(wilcox_df.loc[species])[3:])
+            popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
+            self.wilcoxon_tree.bind("<Double-Button-1>", lambda event, tree=self.wilcoxon_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
 
     def ancom(self):
         """  """
@@ -1103,47 +1115,53 @@ class PopUpGraph():
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
-        label_1 = self.samples1_label.get()
-        label_2 = self.samples2_label.get()
         
-        open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
-        df = self.abundance_df.groupAbsoluteSamples()[samples]
-        
-        mr_df = multiplicative_replacement(df.T)
-        grouping = pd.Series([label_1] *len(samples_1) + [label_2] *len(samples_2), index=samples)
-        ancom_df, percentile_df = ancom(pd.DataFrame(mr_df, index=df.columns, columns=df.index), grouping, multiple_comparisons_correction='holm-bonferroni')
+        if len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
+        else:
 
-        self.tree_frame = Frame(self.inner_frame)
-        self.tree_frame.grid(row=1, column=0)
-        columns = [self.tax_level2, 'W', label_1+'_median', label_2+'_median']
-        self.ancom_tree = Treeview(self.tree_frame, height='10', columns=columns)#, show="headings", selectmode="extended")
-        self.ancom_tree.column("#0", anchor="w", width=0)
+            label_1 = self.samples1_label.get()
+            label_2 = self.samples2_label.get()
         
-        for col in columns:
-            self.ancom_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.ancom_tree, each, False))
-            self.ancom_tree.column(col, anchor='w', width=150)
-        self.ancom_tree.column(columns[0], anchor='w', width=250)
-        self.ancom_tree.grid(row=1, column=0, columnspan=5)
-        treeScroll = Scrollbar(self.tree_frame, command=self.ancom_tree.yview)
-        treeScroll.grid(row=1, column=5, sticky='nsew')
-        self.ancom_tree.configure(yscrollcommand=treeScroll.set)
+            open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
+            df = self.abundance_df.groupAbsoluteSamples()[samples]
         
-        percentiles = [0.0, 25.0, 50.0, 75.0, 100.0]
-        columns2 =['W']
-        for percentile in percentiles:
-            columns2 += ['{}_{}percentile'.format(label_1, percentile), '{}_{}percentile'.format(label_1, percentile)]
-        results_df = pd.DataFrame(columns=columns2, index=sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index))
-        for species in sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index):
-            values = [species, ancom_df.loc[species,'W'], '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2])]
-            values2 = ['{0:.2e}'.format(percentile_df[0.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[0.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_2])]
-            results_df.loc[species] = [ancom_df.loc[species,'W']] + values2
-            item = self.ancom_tree.insert('', 'end', iid=species,  values=values)
-        popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
-        self.ancom_tree.bind("<Double-Button-1>", lambda event, tree=self.ancom_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
+            mr_df = multiplicative_replacement(df.T)
+            grouping = pd.Series([label_1] *len(samples_1) + [label_2] *len(samples_2), index=samples)
+            ancom_df, percentile_df = ancom(pd.DataFrame(mr_df, index=df.columns, columns=df.index), grouping, multiple_comparisons_correction='holm-bonferroni')
+
+            self.tree_frame = Frame(self.inner_frame)
+            self.tree_frame.grid(row=1, column=0)
+            columns = [self.tax_level2, 'W', label_1+'_median', label_2+'_median']
+            self.ancom_tree = Treeview(self.tree_frame, height='10', columns=columns)#, show="headings", selectmode="extended")
+            self.ancom_tree.column("#0", anchor="w", width=0)
         
-        filename = asksaveasfilename(title = "Select file to save ANCOM results", initialfile='ancom_results', filetypes = [('CSV', ".csv")])
-        if filename:
-            results_df.to_csv(filename)
+            for col in columns:
+                self.ancom_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.ancom_tree, each, False))
+                self.ancom_tree.column(col, anchor='w', width=150)
+            self.ancom_tree.column(columns[0], anchor='w', width=250)
+            self.ancom_tree.grid(row=1, column=0, columnspan=5)
+            treeScroll = Scrollbar(self.tree_frame, command=self.ancom_tree.yview)
+            treeScroll.grid(row=1, column=5, sticky='nsew')
+            self.ancom_tree.configure(yscrollcommand=treeScroll.set)
+        
+            percentiles = [0.0, 25.0, 50.0, 75.0, 100.0]
+            columns2 =['W']
+            for percentile in percentiles:
+                columns2 += ['{}_{}percentile'.format(label_1, percentile), '{}_{}percentile'.format(label_1, percentile)]
+            results_df = pd.DataFrame(columns=columns2, index=sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index))
+            for species in sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index):
+                values = [species, ancom_df.loc[species,'W'], '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2])]
+                values2 = ['{0:.2e}'.format(percentile_df[0.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[0.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[25.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[75.0].loc[species,label_2]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[100.0].loc[species,label_2])]
+                results_df.loc[species] = [ancom_df.loc[species,'W']] + values2
+                item = self.ancom_tree.insert('', 'end', iid=species,  values=values)
+            popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
+            self.ancom_tree.bind("<Double-Button-1>", lambda event, tree=self.ancom_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
+        
+            filename = asksaveasfilename(title = "Select file to save ANCOM results", initialfile='ancom_results', filetypes = [('CSV', ".csv")])
+            if filename:
+                results_df.to_csv(filename)
 
     def richness_groups(self):
         """ creates a boxplot of the richness for each group of samples """
@@ -1158,17 +1176,23 @@ class PopUpGraph():
         df = df.drop('-', errors='ignore')
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
-        samples = samples_1+samples_2
         
-        df = df.loc[:,samples]
+        if len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
+        else:
+
+            samples = samples_1+samples_2
         
-        start_idx = list(self.all_tax_levels).index(self.tax_level2)
-        richness = df.astype(bool).sum(axis=0)#[start_idx:]
+            df = df.loc[:,samples]
         
-        popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-        if self.abundance_df is not None:
-            working_samples = self.abundance_df.groupAllSamples()
-        popup_matplotlib.richness_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, richness, self.samples1_label.get(), self.samples2_label.get())
+            start_idx = list(self.all_tax_levels).index(self.tax_level2)
+            richness = df.astype(bool).sum(axis=0)#[start_idx:]
+        
+            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+            if self.abundance_df is not None:
+                working_samples = self.abundance_df.groupAllSamples()
+            popup_matplotlib.richness_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, richness, self.samples1_label.get(), self.samples2_label.get())
 
     def shannon_diversity_groups(self):
         """ creates a boxplot of the Shannon diversity index for each group of samples """
@@ -1185,17 +1209,22 @@ class PopUpGraph():
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
         
-        df = df.loc[:,samples]
+        if len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
+        else:
+
+            df = df.loc[:,samples]
         
-        shannon  = []
-        for sample in samples:
-            shannon.append(shannon_index(df[sample].values))
-        shannon = pd.Series(shannon, index=samples)
+            shannon  = []
+            for sample in samples:
+                shannon.append(shannon_index(df[sample].values))
+            shannon = pd.Series(shannon, index=samples)
         
-        popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-        if self.abundance_df is not None:
-            working_samples = self.abundance_df.groupAllSamples()
-        popup_matplotlib.shannon_diversity_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, shannon, self.samples1_label.get(), self.samples2_label.get())
+            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+            if self.abundance_df is not None:
+                working_samples = self.abundance_df.groupAllSamples()
+            popup_matplotlib.shannon_diversity_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, shannon, self.samples1_label.get(), self.samples2_label.get())
 
     def correlation_groups(self):
         """ correaltion """
@@ -1271,54 +1300,6 @@ class PopUpGraph():
             canvas.create_oval((417,55+i*20,423,55+i*20+6), width=3, outline=colours[i])
             canvas.create_text(430, 50+i*20, text=label, anchor=NW)
         
-    def pca_old(self):
-        train_cols = [self.samples_list[x] for x in list(self.samples_lbox.curselection() + self.samples_lbox2.curselection())]
-        targets = [0]*len(self.samples_lbox.curselection()) + [1]*len(self.samples_lbox2.curselection())
-        self.inner_frame.destroy()
-        self.inner_frame = Frame(self.frame)
-        self.inner_frame.grid(row=6, column=0, columnspan=6)
-
-        canvas = create_canvas(frame=self.inner_frame, xscroll=False, yscroll=False, colspan=2, take_focus=True)
-
-        from sklearn.preprocessing import scale #module that normalizes data
-        from sklearn.decomposition import PCA #PCA module
-        df = self.abundance_df.getDataframe()
-        df = df[df['masked']==False]
-        train = df.loc[:,train_cols]
-        train_norm = scale(train.values)
-        pca = PCA()
-        reduced_data = pca.fit_transform(train_norm) #PCA SVD calculations
-        #pc1 = pca.components_[0]
-        from sklearn.feature_selection import VarianceThreshold
-        sel = VarianceThreshold(threshold=(0.999 * (1 - 0.999)))
-
-        if self.feature_selction_var.get():
-            X_var = sel.fit_transform(np.transpose(train.values))
-            new_names = df.loc[:,'species'].values[sel.get_support()]
-        else:
-            X_var = np.transpose(train.values)
-            new_names = df.loc[:,'species'].values
-        X_varN = scale(X_var) #Scaled version of X_var
-        #pca = PCA()
-        reduced_data = pca.fit_transform(np.transpose(X_varN))
-        pc1 = pca.components_[0]
-        pc2 = pca.components_[1]
-        pc1_expl_var, pc2_expl_var = pca.explained_variance_ratio_[:2]
-        pc1_expl_var = str(round(pc1_expl_var*100,2))
-        pc2_expl_var = str(round(pc2_expl_var*100,2))
-        sample_names = list(df.loc[:,train_cols].columns)
-       
-        targets_bool = np.array(targets, dtype=bool)
-        pc1_group2 = pc1[targets_bool]
-        pc1_group1 = pc1[np.invert(targets_bool)]
-        pc2_group2 = pc2[targets_bool]
-        pc2_group1 = pc2[np.invert(targets_bool)]
-       
-        colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
-
-        self.draw_scatter_plot(canvas, 'PC1 ('+pc1_expl_var+'%)', 'PC2 ('+pc2_expl_var+'%)', pc1, pc2, sample_names, colours)
-        self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
-    
     def pca(self):
         from skbio.stats.composition import ilr, multiplicative_replacement
         from sklearn.decomposition import PCA
@@ -1326,35 +1307,39 @@ class PopUpGraph():
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=6, column=0, columnspan=6)
         
-        canvas = create_canvas(frame=self.inner_frame, xscroll=False, yscroll=False, colspan=2, take_focus=True)
-        
         samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
-        targets = [0]*len(samples_1) + [1]*len(samples_2)
+        if len(samples_1) < 1 or len(samples_2) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
+        else:
+            canvas = create_canvas(frame=self.inner_frame, xscroll=False, yscroll=False, colspan=2, take_focus=True)
+
+            targets = [0]*len(samples_1) + [1]*len(samples_2)
         
-        open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
-        df = self.abundance_df.groupAbsoluteSamples()[samples]
+            open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
+            df = self.abundance_df.groupAbsoluteSamples()[samples]
         
-        mr_df = multiplicative_replacement(df.T)
-        mr_ilr = ilr(mr_df)
+            mr_df = multiplicative_replacement(df.T)
+            mr_ilr = ilr(mr_df)
         
-        pca = PCA(n_components=2)
-        principalComponents = pca.fit_transform(mr_ilr)
-        pc1 = []
-        pc2 = []
-        for item in principalComponents:
-            pc1.append(item[0])
-            pc2.append(item[1])
-        #print(pc1)
-        #print(pc2)
-        explained_variance = [str(round(item*100,2)) for item in pca.explained_variance_ratio_]
-        colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
-        self.draw_scatter_plot(canvas, 'PC1 ('+explained_variance[0]+'%)', 'PC2 ('+explained_variance[1]+'%)', pc1, pc2, samples, colours)
-        self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
+            pca = PCA(n_components=2)
+            principalComponents = pca.fit_transform(mr_ilr)
+            pc1 = []
+            pc2 = []
+            for item in principalComponents:
+                pc1.append(item[0])
+                pc2.append(item[1])
+            #print(pc1)
+            #print(pc2)
+            explained_variance = [str(round(item*100,2)) for item in pca.explained_variance_ratio_]
+            colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
+            self.draw_scatter_plot(canvas, 'PC1 ('+explained_variance[0]+'%)', 'PC2 ('+explained_variance[1]+'%)', pc1, pc2, samples, colours)
+            self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
         
-        popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-        popup_matplotlib.pcoa(pc1[len(samples_1):], pc1[:len(samples_1)], pc2[len(samples_1):], pc2[:len(samples_1)], self.samples1_label.get(), self.samples2_label.get(), (0,1), pca=True)
+            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+            popup_matplotlib.pcoa(pc1[len(samples_1):], pc1[:len(samples_1)], pc2[len(samples_1):], pc2[:len(samples_1)], self.samples1_label.get(), self.samples2_label.get(), (0,1), pca=True)
         
     def pcoa(self):
         from skbio.diversity import beta_diversity
@@ -1366,49 +1351,54 @@ class PopUpGraph():
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=6, column=0, columnspan=6)
 
-        canvas = create_canvas(frame=self.inner_frame, xscroll=False, yscroll=False, colspan=2, take_focus=True)
-        
-        df = self.abundance_df.getDataframe()
-        df = df[df['masked']==False]
-        train = df.loc[:,train_cols]
-        train_norm = scale(train.values)
-        
-        if self.feature_selction_var.get():
-            from sklearn.feature_selection import VarianceThreshold
-            sel = VarianceThreshold(threshold=(0.999 * (1 - 0.999)))
-            X_var = sel.fit_transform(np.transpose(train.values))
+        if len(targets) < 1:
+            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+            return
         else:
-            X_var = np.transpose(train.values)
-        new_names = train_cols
 
-        bc_dm = beta_diversity('braycurtis', X_var, list(new_names), validate=False) #bray-curtis dissimilarity matrix
-        pc_nums = next(self.pcoa_toggle)
-        bc_pc = pcoa(bc_dm)
-        #pco1_prp_expl, pco2_prp_expl = list(bc_pc.proportion_explained)[:2]
-        pco1_prp_expl = list(bc_pc.proportion_explained)[pc_nums[0]]
-        pco2_prp_expl = list(bc_pc.proportion_explained)[pc_nums[1]]
-        pco1_prp_expl = str(round(pco1_prp_expl*100,2))
-        pco2_prp_expl = str(round(pco2_prp_expl*100,2))
-        coord_matrix = bc_pc.samples.values.T
-        #pco1 = coord_matrix[0]
-        #pco2 = coord_matrix[1]
-        pco1 = coord_matrix[pc_nums[0]]
-        pco2 = coord_matrix[pc_nums[1]]
-        sample_names = list(df.loc[:,train_cols].columns)
-        targets_bool = np.array(targets, dtype=bool)
-        pco1_group2 = pco1[targets_bool]
-        pco1_group1 = pco1[np.invert(targets_bool)]
-        pco2_group2 = pco2[targets_bool]
-        pco2_group1 = pco2[np.invert(targets_bool)]
-       
-        colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
-
-        self.draw_scatter_plot(canvas, 'PCo'+str(pc_nums[0]+1)+' ('+pco1_prp_expl+'%)', 'PCo'+str(pc_nums[1]+1)+' ('+pco2_prp_expl+'%)', pco1, pco2, sample_names, colours)
-        self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
+            canvas = create_canvas(frame=self.inner_frame, xscroll=False, yscroll=False, colspan=2, take_focus=True)
         
-        targets_names = [self.samples1_label.get() if item==0 else self.samples2_label.get() for item in targets]
-        popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-        popup_matplotlib.pcoa(pco1_group2, pco1_group1, pco2_group2, pco2_group1, self.samples1_label.get(), self.samples2_label.get(), pc_nums)
+            df = self.abundance_df.getDataframe()
+            df = df[df['masked']==False]
+            train = df.loc[:,train_cols]
+            train_norm = scale(train.values)
+        
+            if self.feature_selction_var.get():
+                from sklearn.feature_selection import VarianceThreshold
+                sel = VarianceThreshold(threshold=(0.999 * (1 - 0.999)))
+                X_var = sel.fit_transform(np.transpose(train.values))
+            else:
+                X_var = np.transpose(train.values)
+            new_names = train_cols
+
+            bc_dm = beta_diversity('braycurtis', X_var, list(new_names), validate=False) #bray-curtis dissimilarity matrix
+            pc_nums = next(self.pcoa_toggle)
+            bc_pc = pcoa(bc_dm)
+            #pco1_prp_expl, pco2_prp_expl = list(bc_pc.proportion_explained)[:2]
+            pco1_prp_expl = list(bc_pc.proportion_explained)[pc_nums[0]]
+            pco2_prp_expl = list(bc_pc.proportion_explained)[pc_nums[1]]
+            pco1_prp_expl = str(round(pco1_prp_expl*100,2))
+            pco2_prp_expl = str(round(pco2_prp_expl*100,2))
+            coord_matrix = bc_pc.samples.values.T
+            #pco1 = coord_matrix[0]
+            #pco2 = coord_matrix[1]
+            pco1 = coord_matrix[pc_nums[0]]
+            pco2 = coord_matrix[pc_nums[1]]
+            sample_names = list(df.loc[:,train_cols].columns)
+            targets_bool = np.array(targets, dtype=bool)
+            pco1_group2 = pco1[targets_bool]
+            pco1_group1 = pco1[np.invert(targets_bool)]
+            pco2_group2 = pco2[targets_bool]
+            pco2_group1 = pco2[np.invert(targets_bool)]
+       
+            colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
+
+            self.draw_scatter_plot(canvas, 'PCo'+str(pc_nums[0]+1)+' ('+pco1_prp_expl+'%)', 'PCo'+str(pc_nums[1]+1)+' ('+pco2_prp_expl+'%)', pco1, pco2, sample_names, colours)
+            self.add_legend_to_canvas(canvas, ['darkgreen','cornflowerblue'], [self.samples1_label.get(), self.samples2_label.get()])
+        
+            targets_names = [self.samples1_label.get() if item==0 else self.samples2_label.get() for item in targets]
+            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
+            popup_matplotlib.pcoa(pco1_group2, pco1_group1, pco2_group2, pco2_group1, self.samples1_label.get(), self.samples2_label.get(), pc_nums)
         
     def do_pop_up(self, event, name):
         """ do popup """
