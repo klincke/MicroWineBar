@@ -223,13 +223,9 @@ class PopUpGraph():
             random_forest_button = Button(fsel_frame, text='random forest', command=self.calculate_classification)
         random_forest_button.grid(row=0, column=4, padx=5, pady=2)
         
-        deseq_button = Button(fsel_frame, text='DESeq2', command=self.deseq2)
-        self.balloon.bind(deseq_button, 'differential abundance analysis based on DESeq2')
-        deseq_button.grid(row=0, column=5, padx=5, pady=2)
-        
         ancom_button = Button(fsel_frame, text='ANCOM', command=self.ancom)
         self.balloon.bind(ancom_button, 'ANalysis of COmposition of Microbiomes for differential abundance')
-        ancom_button.grid(row=0, column=6, padx=5, pady=2)
+        ancom_button.grid(row=0, column=5, padx=5, pady=2)
         
         correlation_frame = LabelFrame(self.frame, text='correlation', padx=10, pady=2)
         correlation_frame.grid(row=4, column=0, columnspan=3)
@@ -1097,79 +1093,6 @@ class PopUpGraph():
         popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
         self.wilcoxon_tree.bind("<Double-Button-1>", lambda event, tree=self.wilcoxon_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
 
-    def deseq2(self):
-        """  """
-        from rpy2 import robjects
-        import rpy2.robjects.numpy2ri
-        robjects.numpy2ri.activate()
-        from rpy2.robjects.packages import importr
-        from rpy2.robjects import Formula
-        
-        import warnings
-        from rpy2.rinterface import RRuntimeWarning
-        warnings.filterwarnings("ignore", category=RRuntimeWarning)
-        
-        self.inner_frame.destroy()
-        self.inner_frame = Frame(self.frame)
-        self.inner_frame.grid(row=6, column=0, columnspan=6)
-        
-        deseq = importr('DESeq2')
-        
-        absolute_counts = self.abundance_df.groupAbsoluteSamples()
-        
-        if absolute_counts is not None:
-        
-            # Make the data frame
-            d = {}
-            samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
-            samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
-            samples = samples_1+samples_2
-        
-            absolute_counts = absolute_counts[samples]
-        
-            categories = (1,) * len(samples_1) + (2,) * len(samples_2)
-
-            d["group"] = robjects.IntVector(categories)
-            dataframe = robjects.DataFrame(d)
-
-            design = Formula("~ group")
-            dds = deseq.DESeqDataSetFromMatrix(countData=absolute_counts.values, colData=dataframe, design=design)
-            dds = deseq.DESeq(dds)
-            res = deseq.results(dds)
-
-            rownames = res.slots['rownames']
-            listdata = res.slots['listData']
-
-            listdata_array = np.array(listdata)
-            listdata_names_array = np.array(listdata.names)
-            df = pd.DataFrame(listdata_array.T, columns=listdata_names_array, index=absolute_counts.index)
-        
-            self.tree_frame = Frame(self.inner_frame)
-            self.tree_frame.grid(row=1, column=0)
-            self.deseq_tree = Treeview(self.tree_frame, height='10', columns=[self.tax_level]+list(df.columns))#, show="headings", selectmode="extended")
-            self.deseq_tree.column("#0", anchor="w", width=0)
-            for col in [self.tax_level]+list(df.columns):
-                self.deseq_tree.heading(col,text=col.capitalize(), command=lambda each=col: self.treeview_sort_column(self.deseq_tree, each, False))
-                self.deseq_tree.column(col, anchor='w', width=90)
-            self.deseq_tree.column(self.tax_level, anchor='w', width=200)
-            self.deseq_tree.grid(row=1, column=0, columnspan=5)
-            treeScroll = Scrollbar(self.tree_frame, command=self.deseq_tree.yview)
-            treeScroll.grid(row=1, column=5, sticky='nsew')
-            self.deseq_tree.configure(yscrollcommand=treeScroll.set)
-            for species in df.index:
-                p_val = '{0:.0e}'.format(df.loc[species,'pvalue'])
-                p_adj = '{0:.0e}'.format(df.loc[species,'padj'])
-                item = self.deseq_tree.insert('', 'end', iid=species,  values=[species]+[round(item, 2) for item in list(df.loc[species])[:-2]]+[p_val, p_adj])
-            popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, samples, self.abundance_df, groups=(samples_1, samples_2))
-            self.deseq_tree.bind("<Double-Button-1>", lambda event, tree=self.deseq_tree, new_bool=1 : popup_info.do_tree_popup(event, tree, new_bool))
-            
-            filename = asksaveasfilename(title = "Select file to save DESeq2 results", initialfile='deseq2_results', filetypes = [('CSV', ".csv")])
-            if filename:
-                df.to_csv(filename)
-            
-            popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
-            popup_matplotlib.deseq2(df, self.samples1_label.get(), self.samples2_label.get())
-            
     def ancom(self):
         """  """
         from skbio.stats.composition import ancom, multiplicative_replacement
