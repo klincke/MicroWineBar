@@ -4,6 +4,7 @@ from tkinter.ttk import *
 from tkinter.filedialog import asksaveasfilename
 import itertools
 import wikipedia
+import requests
 import webbrowser
 import pandas as pd
 import numpy as np
@@ -1727,6 +1728,8 @@ class PopUpWindow():
             text += entry.title + '\n\nSummary:\n' + entry.summary + '\n\n'
         except(wikipedia.exceptions.PageError):
             noentry = 'there exists no Wikipedia entry'# for:\n' + name
+        except(requests.exceptions.ConnectionError):
+            noentry = 'no internet connection'
         if self.tax_list != []:
             text += 'Taxonomy:\n'
             for i, level in enumerate(self.all_tax_levels[-len(self.tax_list):]):
