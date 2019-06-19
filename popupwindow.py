@@ -227,7 +227,10 @@ class PopUpGraph():
             random_forest_button = Button(fsel_frame, text='random forest', command=self.calculate_classification)
         random_forest_button.grid(row=0, column=4, padx=5, pady=2)
         
-        ancom_button = Button(fsel_frame, text='ANCOM', command=self.ancom)
+        if self.abundance_df.groupAbsoluteSamples() is None:
+            ancom_button = Button(fsel_frame, text='ANCOM', command=self.ancom, state=DISABLED)
+        else:
+            ancom_button = Button(fsel_frame, text='ANCOM', command=self.ancom)
         self.balloon.bind(ancom_button, 'ANalysis of COmposition of Microbiomes for differential abundance')
         ancom_button.grid(row=0, column=5, padx=5, pady=2)
         

@@ -19,49 +19,6 @@ class Abundances():
         """ merges abundance dataframe and taxonomy dataframe """
         self.abundance_df['masked'] = [False]*len(self.abundance_df.index)
         self.abundance_df['colour'] = ['undefined']*len(self.abundance_df.index)
-        
-        if(0):
-            test_df = self.abundance_df[self.sample_names+self.tax_levels]
-            test_df['id'] = self.abundance_df.index
-            test_df = test_df.loc[:,['id'] + self.sample_names]
-            test_df.index = self.abundance_df[self.tax_levels[0]]
-            test_df.to_csv('/Users/klincke/Documents/MicroWine/GraphicsProject/Mac/abundance_table_conet_2016_11.tab', sep='\t')
-    
-    #old
-    def addSample_old(self, sample_name, filename):
-        """ adds a sample (as one column) to the dataframe """
-        tax_levels = None
-        if len(self.abundance_df.columns) == 0:
-            #abundance_df = pd.read_table(filename, header=None, index_col=0) #krona (no header, no index)
-            self.abundance_df = pd.read_csv(filename, header=0, index_col=0, sep='\t')
-            #try:
-            #    int(abundance_df.values[0,0])
-            #except:
-            #    abundance_df.columns = abundance_df.iloc[0]
-            #    abundance_df = abundance_df[1:]
-            self.tax_levels = self.abundance_df.columns.tolist()
-            #self.tax_levels = abundance_df.columns.tolist()
-            self.tax_levels = self.tax_levels[1:]
-            self.abundance_df = self.abundance_df.rename(columns = {list(self.abundance_df.columns)[0]: sample_name})
-                #abundance_df = abundance_df.rename(columns = {list(abundance_df.columns)[0]: sample_name})
-                
-            self.abundance_df = self.abundance_df[self.tax_levels + [sample_name]]
-            #self.abundance_df = abundance_df[self.tax_levels + [sample_name]]
-            self.abundance_df.index = self.abundance_df['species']
-            #self.abundance_df.index = self.abundance_df[self.tax_levels[0]]
-            tax_levels = list(self.abundance_df.columns)
-            tax_levels.remove(sample_name)
-        else:
-            sample_df = pd.read_csv(filename, header=0, index_col=0, sep='\t')
-            sample_df = sample_df.rename(columns = {'abundance': sample_name})
-            #sample_df.index = sample_df['species']
-            sample_df.index = sample_df[self.tax_levels[0]]
-            self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=tax_levels)
-            self.abundance_df.fillna(value=0, inplace=True)
-        self.sample_names.append(sample_name.strip())
-        #print(self.abundance_df.columns)
-        #print(self.abundance_df.head(2))
-        return self.tax_levels
 
     #add MGmapper sample (with raw counts)
     def addMGmapperSample(self, sample_name, filename):

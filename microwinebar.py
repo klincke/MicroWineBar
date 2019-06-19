@@ -262,7 +262,7 @@ class Interaction(Frame):
         if not self.os:
             #self.filemenu.add_command(label="Open sample(s)", command=self.OpenFiles, accelerator="Ctrl+o")
             #self.bind_all("<Control-o>", self.OpenFiles)
-            self.filemenu.add_command(label="Open MGmapper", command=self.OpenMGmapper)
+            self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
             self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
             #self.filemenu.add_command(label="Open sample(s) - MGmapper classify", command=self.OpenMGmapperClassifyFiles)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Ctrl+m")
@@ -271,7 +271,7 @@ class Interaction(Frame):
         else:
             #self.filemenu.add_command(label="Open", command=self.OpenFiles, accelerator="Cmd+o")
             #self.filemenu.add_command(label="Open MGmapper classify", command=self.OpenMGmapperClassifyFiles)
-            self.filemenu.add_command(label="Open MGmapper", command=self.OpenMGmapper)
+            self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
             #self.bind_all("<Command-o>", self.OpenFiles)
             self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Cmd+m")
