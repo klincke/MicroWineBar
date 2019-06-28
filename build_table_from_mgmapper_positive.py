@@ -1,19 +1,18 @@
 #!/usr/bin/env python3.6
 
-#python build_table_from_mgmapper_positive.py bobal2012_0  --suffix .tab
+#python build_table_from_mgmapper_positive.py bobal2012_0 --suffix .tab
 
-import sys
-import os
+import os, sys
 import glob
 import pandas as pd
 import numpy as np
 import argparse
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('sample', action='store', help='name of the MGmapper directory')
-parser.add_argument('--MGmapper_dir', action='store', default='./', help='directory where the MGmapper output directory is placed for')
-parser.add_argument('--suffix', action='store', default='_microwine.tsv', help='suffix for the output file, the default is "_microwine.tsv"')
+parser = argparse.ArgumentParser(description="helper script to prepare MGmapper output for MicroWineBar")
+parser.add_argument('sample', action='store', type=str, help='name of the MGmapper directory')
+parser.add_argument('--MGmapper_dir', action='store', type=str, default='./', nargs=1, required=True, help='directory where the MGmapper output directory is placed, default: "./"')
+parser.add_argument('--suffix', action='store', type=str, default='_microwine.tsv', help='suffix for the output file, default: "_microwine.tsv"')
 args = parser.parse_args()
 
 
