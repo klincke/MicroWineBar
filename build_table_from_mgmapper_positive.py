@@ -1,6 +1,7 @@
-#!/usr/bin/env python3.6
-
-#python build_table_from_mgmapper_positive.py bobal2012_0 --suffix .tab
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#Franziska Klincke
+#usage: python build_table_from_mgmapper_positive.py SAMPLE --suffix .tab
 
 import os, sys
 import glob

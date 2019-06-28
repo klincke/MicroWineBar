@@ -1,7 +1,10 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#Franziska Klincke
 #converts Bracken output into format which can be read by microwinebar
 #gets the NCBI taxonomy
+#usage: python build_table_from_bracken.py --input_file INPUT_FILE --suffix .tab
+
 
 #Franziska Klincke
 import os, sys
