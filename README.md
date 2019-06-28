@@ -51,7 +51,7 @@ Tab delimited files from programs that estimate abundances of microbial organism
 #### Prepare Input
 Scripts for preparing input are provided:
 * build_table_from_bracken.py   
-  Takes [Bracken](https://ccb.jhu.edu/software/bracken/index.shtml) output and adds NCBI taxonomy for all levels
+  Takes [Bracken](https://ccb.jhu.edu/software/bracken/index.shtml) output and adds NCBI taxonomy for all levels. To run it one also needs to install the Environment for Tree Exploration by typing `pip install ete3`
 * build_table_from_mgmapper_positive.py   
   Takes [MGmapper](https://bitbucket.org/genomicepidemiology/mgmapper/src/master/) output and combines the output from several databases into one table
 
