@@ -9,18 +9,27 @@ Author: Franziska Klincke
 Mail: klincke@bioinformatics.dtu.dk
 
 MicroWineBar is a graphical tool for analysing metagenomic sequencing samples. 
-MicorWineBar has to be installed locally.
 
-Copyright (c) 2018 Franziska Klincke
+Copyright (c) 2019 Franziska Klincke
 
 
 ## Installation
+
+### Python 
 
 prerequisites:	Python 3.6
 
 recommended is anaconda    
     download from https://www.anaconda.com/distribution/#download-section and install as described there
+or miniconda 
+	download from https://docs.conda.io/en/latest/miniconda.html and install as described there
+but one can also use another Python installation
 
+### Install MicroWineBar
+open a terminal and type
+	`pip install microwinebar`
+
+This will install all required python packages automatically. However, if this is not the caseone can also manually install them: 
 additinal Python packages:
 * Pmw     
 	open a terminal and type
@@ -31,30 +40,26 @@ additinal Python packages:
 * scikit-bio
     open a terminal and type
         `pip install scikit-bio`
-* rpy2
-    open a terminal and type
-    	`pip install rpy2`
+* scikit-learn 
+	open a terminal and type
+		`pip install scikit-learn`
+* numpy
+	open a terminal and type
+		`pip install numpy`
+* pandas
+	open a terminal and type
+		`pip install pandas`
 
 
 ## Usage
 
-open terminal and move into the MicroWineBar directory and type `python microwinebar.py` or `./microwinebar.py`
-, in case of several python versions one can also try `python3 microwinebar.py`
+open a terminal and type `microwinebar` 
 
 
 ## Input formats
 
 Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Kraken or MetaPhlAn. These files contain absolute (and relative) abundances with taxonomic annotations. 
 
-
-## Using other Python versions than anaconda
-
-It is possible to use other Python versions but then one needs to install additional packages:
-* openpyxl
-* numpy
-* pandas
-* scipy
-* scikit-learn
 
 
 ## Example
