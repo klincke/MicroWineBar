@@ -15,10 +15,13 @@ def DumpParsed(file, what):
 
 def UnDumpParsed(file, what):
     """ saves (undump/unpickle) file to what """
-    fid = open(file, 'rb')
-    tmpdict = pickle.load(fid)
-    what.update(tmpdict)
-    del(tmpdict)
+    try:
+        fid = open(file, 'rb')
+        tmpdict = pickle.load(fid)
+        what.update(tmpdict)
+        del(tmpdict)
+    except ModuleNotFoundError:
+        pass
 
 def save_canvas_as_pdf(canvas, width=500, height=500):
     """ saves canvas as pdf """
