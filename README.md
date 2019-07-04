@@ -6,7 +6,7 @@ Available from: https://github.com/klincke/MicroWineBar
 
 Author: Franziska Klincke
 
-Mail: klincke@bioinformatics.dtu.dk
+Mail: franziska.klincke@bio.ku.dk
 
 MicroWineBar is a graphical tool for analysing metagenomic sequencing samples.
 
@@ -15,9 +15,11 @@ Copyright (c) 2019 Franziska Klincke
 
 ## Installation
 
+MicroWineBar only works on **MacOS** and **Linux**. It uses the Python package scikit-bio which is currently not supported for Windows.
+
 #### Python
 
-prerequisites:	Python 3.6
+prerequisites:	Python >=3.6
 
 recommended is anaconda:     
     download [anaconda](https://www.anaconda.com/distribution/#download-section) and install as described there   
@@ -25,8 +27,15 @@ or miniconda:
 	download [miniconda](https://docs.conda.io/en/latest/miniconda.html) and install as described there  
 but one can also use another Python installation
 
+##### Python environment
+It is also recommended to set up a Python environment. I experienced problems with matplotlib version 3.1.x.   
+If you are using anaconda, virtualenv is already installed, otherwise you need to run `pip install virtualenv` to install it. To set up a Python environment open a terminal and type `virtualenv NAMEOFYOURTESTENV` and change NAMEOFYOURTESTENV to your preferred name of the environment.   
+To activate your python environment type `source NAMEOFYOURTESTENV/bin/activate`.   
+Inside you environment you can install and run MicroWineBar. Afterward deactivate the environment by typing `deactivate`. 
+
 #### Install MicroWineBar
-open a terminal and simply type
+Note: Remember to activate you Python environment if you use one.
+Open a terminal and simply type
 	`pip install microwinebar`
 
 This will install all required python packages automatically. However, if this is not the case one can also manually install them:
@@ -37,16 +46,24 @@ additinal Python packages:
 * scikit-learn: open a terminal and type `pip install scikit-learn`
 * numpy: open a terminal and type `pip install numpy`
 * pandas: open a terminal and type `pip install pandas`
-
+Note: Remember to deactivate you Python environment if you use one.
 
 ## Usage
-
-open a terminal and type `microwinebar`
-
+Note: Remember to activate you Python environment if you use one.
+Open a terminal and type `microwinebar` to start MicroWineBar.
+Note: Remember to deactivate you Python environment if you use one.
 
 ## Input formats
 
-Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Kraken or MetaPhlAn. These files contain absolute (and relative) abundances with taxonomic annotations.
+[](Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Kraken or MetaPhlAn. These files contain absolute (and relative) [](abundances with taxonomic annotations.)
+MicroWineBar was designed for species abundance tables from shotgun metagenomics data but it can also be used for other types of hierarchical data. The tab-delimietd files contain absolute (and relative) abundances with taxonomic annotations.
+
+[//]: test
+
+[^Comment]:  Text
+
+<!-- MGmapper, Kraken or MetaPhlAn -->
+
 
 #### Prepare Input
 Scripts for preparing input are provided:
