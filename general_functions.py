@@ -145,3 +145,15 @@ def shannon_index(abundances, base=None):
         return -sum(abundances*np.log(abundances))
     elif base == 2:
         return -sum(abundances*np.log2(abundances))
+
+def clr_transformed(df):
+    """ """
+    from skbio.stats.composition import clr
+    from skbio.stats.composition import multiplicative_replacement
+    ids = list(df.columns)
+    index0 = list(df.index)
+    data1 = clr(df.transpose().values.tolist())
+    mr_df = multiplicative_replacement(df.T)
+    mr_clr = clr(mr_df)
+    mr_clr_df = pd.DataFrame(mr_clr.T, index=index0, columns=ids)
+    return mr_clr_df
