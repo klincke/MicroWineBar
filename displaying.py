@@ -77,11 +77,5 @@ class Displaying():
         else:
             self.on_ctrl_click()
         
-    def on_enter(self, event):
-        """ displays species name and abundance in label"""
-        self.canvas.config(cursor='plus')
 
-    def on_leave(self, event):
-        """ empties species label """
-        self.canvas.config(cursor='arrow')
         
