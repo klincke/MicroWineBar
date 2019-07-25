@@ -26,7 +26,7 @@ def UnDumpParsed(file, what):
 def save_canvas_as_pdf(canvas, width=500, height=500):
     """ saves canvas as pdf """
     filename = asksaveasfilename()
-    if filename is None: 
+    if filename is None or filename == '': 
         return
     canvas.postscript(file=filename+'.ps', width=width, height=height)
     process = subprocess.call(["ps2pdf", filename+".ps", filename])
@@ -123,12 +123,6 @@ def get_fonts():
     fonts_dict = {}
     fonts_dict['listbox_font'] = ('Courier', 14)#, 'roman bold')
     return fonts_dict
-    
-def set_window_to_front(root):
-    """ sets windo to front"""
-    root.lift()
-    root.attributes('-topmost',True)
-    root.after_idle(root.attributes,'-topmost',False)
     
 
 def transform_to_another_scale(x,a,b,c,d):
