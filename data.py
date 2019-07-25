@@ -286,6 +286,9 @@ class Abundances():
     def getDataframe(self):
         return self.abundance_df
     
+    def getAbsolutDataframe(self):
+        if self.abundance_raw_df is not None:
+            return self.abundance_raw_df
     
     def get_corr(self):
         """ gets the correlation matrix and the signature(sample names) """
