@@ -43,8 +43,6 @@ class Interaction(Frame):
         """ initialises the GUI """
         self.canvas_width = 1000
         self.canvas_height = 400
-        #self.canvas_orig_width = 1000
-        #self.canvas_orig_height = 400
         self.COLOR_SCHEME = ['#0000df', '#007a15', '#a35a00', '#0096b6']
         self.COLOR_SCHEME2 = ['#000078', '#006912', '#784300', '#01758d']
         self.toggle_color_scheme = itertools.cycle([self.COLOR_SCHEME, self.COLOR_SCHEME2])
@@ -54,7 +52,6 @@ class Interaction(Frame):
         self.pop_ups2 = []
         self.bar_ids = []
         self.presets_list = [('-', [], [])]
-        #self.all_tax_levels = ['species', 'genus', 'family', 'order', 'class', 'phylum', 'superfamily']
         self.all_tax_levels = None
         self.corr_matrix, self.corr_signature = None, None
         self.abundance_df = None
@@ -79,7 +76,7 @@ class Interaction(Frame):
 
     def change_filter_all_samples(self, *args):
         """ change filter options """
-        self.abundance_df.getSample(self.getSampleName())
+        self.abundance_df.getSample(self.getSampleName(), self.get_current_tax_level())
         self.working_sample = self.abundance_df.getWorkingSample(self.get_current_tax_level())
         self.min_abundance.delete(0, END)
         self.min_abundance.insert(0, '{0:.2f}'.format(self.getMinAbundance(self.working_sample)))
@@ -201,19 +198,6 @@ class Interaction(Frame):
         self.scale_slider.set(1)
         self.scale_slider.grid(row=1, column=3, rowspan=3)
         
-        #scale_corr_label = ttk.Label(self.features_frame,
-        #                            text='correlation threshold:',
-        #                            background='white')
-        #scale_corr_label.grid(row=2, column=0)
-        #self.threshold = DoubleVar()
-        #self.threshold.set(0.95)
-        #self.scale_corr_slider = Spinbox(self.features_frame, 
-        #                                    from_=0, 
-        #                                    to=1, 
-        #                                    increment=0.01, 
-        #                                    textvariable=self.threshold)
-        #self.scale_corr_slider.grid(row=3, column=0)
-        
         search_frame = ttk.Labelframe(self.features_frame, text='search taxonomic name:')
         search_frame.grid(rowspan=2, row=3, column=0, sticky=N+S+E+W)
         self.species_to_search = StringVar()
@@ -231,12 +215,22 @@ class Interaction(Frame):
         """ resets the diplaying options """
         self.abundance_df.reset()
         self.min_abundance.delete(0, END)
-        self.min_abundance.insert(0, '{0:.2f}'.format(float(0)))
+        self.min_abundance.insert(0, '{0:.2f}'.format(self.getMinAbundance(self.working_sample)-0.001))
         self.max_abundance.delete(0, END)
-        self.max_abundance.insert(0, '{0:.2f}'.format(self.abundance_df.getMaxAbundanceOfSample()+0.01))
+        self.max_abundance.insert(0, '{0:.2f}'.format(self.getMaxAbundance(self.working_sample)+0.001))
         self.scale_slider.set(1)
         self.update()
     
+    def enableMenu(self):
+        """  """
+        self.menu.entryconfig("Highlight", state=NORMAL)
+        self.menu.entryconfig("Overview", state=NORMAL)
+        self.menu.entryconfig("Sort by", state=NORMAL)
+        self.menu.entryconfig("Display sample", state=NORMAL)
+        self.menu.entryconfig("Diversity indices", state=NORMAL)
+        self.filemenu.entryconfig("Write csv", state=NORMAL)
+
+
     def createMenu(self):
         """ creates the menu """
         self.parent.option_add('*tearOff', FALSE)
@@ -248,81 +242,79 @@ class Interaction(Frame):
         self.aboutmenu = Menu(self.menu, tearoff=0)
         self.samplemenu = Menu(self.menu, tearoff=0)
         self.overviewmenu = Menu(self.menu, tearoff=0)
+        self.diversitymenu = Menu(self.menu, tearoff=0)
         
         self.sort_list=[]
-        # self.sort_list=['superkingdom, abundance', 'family, abundance', 'abundance', 'species', 'genus', 'family', 'order', 'class', 'phylum', 'superkingdom']
         self.sort_ind = IntVar()
         self.sort_ind.set(0)
         self.sample_index = IntVar()
         self.sample_index.set(0)
         self.preset_ind = IntVar()
         self.preset_ind.set(0)
-        self.checkDumped()
         self.menu.add_cascade(label="File", menu=self.filemenu)
         if not self.os:
-            #self.filemenu.add_command(label="Open sample(s)", command=self.OpenFiles, accelerator="Ctrl+o")
-            #self.bind_all("<Control-o>", self.OpenFiles)
             self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
             self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
-            #self.filemenu.add_command(label="Open sample(s) - MGmapper classify", command=self.OpenMGmapperClassifyFiles)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Ctrl+m")
             self.filemenu.add_separator()
-            self.filemenu.add_command(label='add preset', command=self.addPreset, accelerator="Ctrl+p")
+            self.filemenu.add_command(label='Add preset', command=self.addPreset, accelerator="Ctrl+p")
         else:
-            #self.filemenu.add_command(label="Open", command=self.OpenFiles, accelerator="Cmd+o")
-            #self.filemenu.add_command(label="Open MGmapper classify", command=self.OpenMGmapperClassifyFiles)
             self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
-            #self.bind_all("<Command-o>", self.OpenFiles)
             self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Cmd+m")
             self.filemenu.add_separator()
-            self.filemenu.add_command(label='add preset', command=self.addPreset, accelerator="Cmd+p")
+            self.filemenu.add_command(label='Add preset', command=self.addPreset, accelerator="Cmd+p")
         self.filemenu.add_separator()
         #write samples to table
-        self.filemenu.add_command(label='write csv', command=self.writeCsv)
+        self.filemenu.add_command(label='Write csv', command=self.writeCsv, state=DISABLED)
         self.filemenu.add_separator()
         self.filemenu.add_command(label='Quit (dump)', command=self.QuitProgram, accelerator="Ctrl+q")
         self.bind_all("<Control-q>", self.QuitProgram)
-        #self.filemenu.add_separator()
         self.filemenu.add_command(label='Quit and remove dump file', command=self.removeDump)
-        self.menu.add_cascade(label="Sort by", menu=self.sortmenu)
-        for ind in range(len(self.sort_list)):
-            self.sortmenu.add_radiobutton(label=self.sort_list[ind], 
-                                        variable=self.sort_ind, 
-                                        value=ind, 
-                                        command=self.update)   
-        self.menu.add_cascade(label="Display sample", menu=self.samplemenu)
-        self.menu.add_cascade(label="Highlight", menu=self.highlightmenu)
-        for ind in range(len(self.presets_list)):
-            self.highlightmenu.add_radiobutton(label=self.presets_list[ind][0],
-                                                variable=self.preset_ind,
-                                                value=ind,
-                                                command=self.HighlightPresets)
-        self.menu.add_cascade(label='overview', menu=self.overviewmenu)
+
+        self.menu.add_cascade(label="Display sample", menu=self.samplemenu, state=DISABLED)
+        self.menu.add_cascade(label="Sort by", menu=self.sortmenu, state=DISABLED)
+        
+        self.menu.add_cascade(label='Overview', menu=self.overviewmenu, state=DISABLED)
+        self.overviewmenu.add_command(label='filter', command=self.filter_all_samples)
+        self.overviewmenu.add_separator()
         self.overviewmenu.add_command(label='stacked bar graph', command=self.overview_bar)
         self.overviewmenu.add_command(label='line graph', command=self.overview_line)
-        self.overviewmenu.add_command(label='richness', command=self.richness_all_samples)
-        self.overviewmenu.add_command(label='Shannon diversity', command=self.shannon_diversity_all_samples)
-        self.overviewmenu.add_command(label='save beta diversity heatmap', command=self.beta_diversity_heatmap)
 
-        self.overviewmenu.add_command(label='compare two groups of samples', command=self.compare_groups)
-        self.overviewmenu.add_command(label='correlation', command=self.correlate)
-        self.overviewmenu.add_command(label='scatter plot', command=self.scatter_plot)
-        self.overviewmenu.add_command(label='filter', command=self.filter_all_samples)
+        self.menu.add_cascade(label='Diversity indices', menu=self.diversitymenu, state=DISABLED)
+        self.diversitymenu.add_command(label='Richness', command=self.richness_all_samples)
+        self.diversitymenu.add_command(label='Shannon diversity', command=self.shannon_diversity_all_samples)
+        self.diversitymenu.add_command(label='Save beta diversity heatmap', command=self.beta_diversity_heatmap)
+        self.diversitymenu.add_command(label='Save cluster heatmap', command=self.cluster_heatmap)
+
+        self.overviewmenu.add_command(label='Correlation', command=self.correlate)
+        self.overviewmenu.add_command(label='Scatter plot', command=self.scatter_plot)
+        self.overviewmenu.add_separator()
+        self.overviewmenu.add_command(label='Compare two groups of samples', command=self.compare_groups)
+
+        self.menu.add_cascade(label="Highlight", menu=self.highlightmenu, state=DISABLED)
         self.menu.add_cascade(label="About", menu=self.aboutmenu)
         self.aboutmenu.add_command(label="About", command=self.ShowAbout)
         self.aboutmenu.add_command(label="Help")
         
         self.parent.config(menu=self.menu)
     
+        self.checkDumped()
+
+        for ind in range(len(self.sort_list)):
+            self.sortmenu.add_radiobutton(label=self.sort_list[ind], 
+                                        variable=self.sort_ind, 
+                                        value=ind, 
+                                        command=self.update)
+        for ind in range(len(self.presets_list)):
+            self.highlightmenu.add_radiobutton(label=self.presets_list[ind][0],
+                                                variable=self.preset_ind,
+                                                value=ind,
+                                                command=self.HighlightPresets)
+
     def update(self):
         """ updates the graph """
-        #self.species_to_search.set(self.species_to_search.get()+' ')
-        #old_string = self.species_to_search.get()
-        #self.species_to_search.set('')
-        #self.species_to_search.set(old_string)
         
-        #self.searchTaxName(self.species_to_search.get())
         indexes = self.lbox.curselection()
         if len(indexes) > 0:
             self.abundance_df.selectOfSample(indexes)
@@ -335,7 +327,6 @@ class Interaction(Frame):
             else:
                 self.abundance_df.sortSample(sort_key_list, True)
                 self.working_sample = self.sortBy(self.working_sample, sort_key_list, True)
-            
             if not self.change_tax_level_bool:
                 self.working_sample = self.filterAbundance(self.working_sample)
             self.change_tax_level_bool = False
@@ -343,7 +334,6 @@ class Interaction(Frame):
             self.min_abundance.insert(0, '{0:.2f}'.format(self.getMinAbundance(self.working_sample)))
             self.max_abundance.delete(0, END)
             self.max_abundance.insert(0, '{0:.2f}'.format(self.getMaxAbundance(self.working_sample)))
-            #self.searchTaxName(self.species_to_search)
             self.barGraph()
             self.HighlightPresets()
             
@@ -410,7 +400,8 @@ class Interaction(Frame):
                         idx = self.working_sample.index.tolist().index(idx)
                         self.canvas.addtag_withtag('orange', self.bar_ids[idx])
                         self.canvas.itemconfigure(self.bar_ids[idx], outline='orange', width=3)
-    
+
+
     def barGraph(self):
         """ creates the bar graph """
         self.canvas.delete('all')
@@ -451,7 +442,6 @@ class Interaction(Frame):
                         samples_names=self.samples_names,
                         pop_ups=self.pop_ups, 
                         abundance_df=self.abundance_df,
-                        #threshold_slider=self.threshold,
                         tax_list=tax_list,
                         meta_df=self.meta_df,
                         all_tax_levels=self.all_tax_levels)
@@ -505,7 +495,6 @@ class Interaction(Frame):
         """  """
         idx = self.lbox.index("@%s,%s" % (event.x, event.y))
         name = self.lbox.get(idx)
-        #print(self.all_tax_levels[self.all_tax_levels.index(self.get_current_tax_level()):])
         tax_list = list(self.abundance_df.getDataframe().loc[name, self.all_tax_levels[self.all_tax_levels.index(self.get_current_tax_level()):]])
         popup_menu = PopUpMenu(self.parent, name, [], self.abundance_df, tax_list=tax_list, meta_df=None, all_tax_levels=self.all_tax_levels, current_tax_level=self.get_current_tax_level())
         popup_menu.do_popup(event, 1)
@@ -547,7 +536,7 @@ class Interaction(Frame):
         popup_matplotlib = PopUpIncludingMatplotlib(self.parent, self.abundance_df, self.all_tax_levels)
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAllSamples()
-        popup_matplotlib.shannon_diversity_all_samples(working_samples, self.sample_names, self.get_current_tax_level())
+            popup_matplotlib.shannon_diversity_all_samples(working_samples, self.sample_names, self.get_current_tax_level())
     
     def beta_diversity_heatmap(self):
         """ create and save as png Braycurtis beta diversity heatmap of all samples """
@@ -556,6 +545,14 @@ class Interaction(Frame):
             working_samples = self.abundance_df.groupAllSamples()
         popup_matplotlib.beta_diversity_heatmap(working_samples, self.sample_names, self.get_current_tax_level())
     
+    def cluster_heatmap(self):
+        """ """
+        popup_matplotlib = PopUpIncludingMatplotlib(self.parent, self.abundance_df, self.all_tax_levels)
+        if self.abundance_df is not None:
+            working_samples = self.abundance_df.groupAbsoluteSamples()
+
+        popup_matplotlib.cluster_heatmap(working_samples, self.sample_names, self.get_current_tax_level())
+
     def compare_groups(self):
         """ compare two presence/absence of species in two groups of samples """
         popup = PopUpGraph(self.parent, 
@@ -581,7 +578,6 @@ class Interaction(Frame):
         popup.corr(self.sample_names, 
                     self.abundance_df.getValuesForColumn(self.all_tax_levels[-1]), 
                     self.abundance_df)
-        #self.abundance_df.corr(self.all_tax_levels, self.sample_names, self.get_current_tax_level())
     
     def scatter_plot(self):
         """ scatter plot """
@@ -598,7 +594,7 @@ class Interaction(Frame):
     def ShowAbout(self):
         """ shows information """
         tmb.showinfo(title="About", 
-                message="Tkinter GUI \nfor displaying metagenomics samples")
+                message="MicroWineBar is a Tkinter GUI \nfor analysing and comapring metagenomics samples")
     
     def checkDumped(self):
         """ check if contents exists to undump """
@@ -626,6 +622,7 @@ class Interaction(Frame):
                     self.AddSamplesToMenu()
                     self.sample_names = sorted(self.sample_names)
                     self.ChooseSample()
+                    self.enableMenu()
                 else: 
                     self.removeDump()
     
@@ -650,6 +647,7 @@ class Interaction(Frame):
                 return
                 
         if new_files_loaded_bool:
+            self.enableMenu()
             self.sortmenu.delete(0, 'end')
             self.sample_names = []
             self.abundance_df = Abundances()
@@ -687,6 +685,7 @@ class Interaction(Frame):
                 return
                 
         if new_files_loaded_bool:
+            self.enableMenu()
             self.sortmenu.delete(0, 'end')
             self.sample_names = []
             self.abundance_df = Abundances()
@@ -725,6 +724,7 @@ class Interaction(Frame):
                 return
                 
         if new_files_loaded_bool:
+            self.enableMenu()
             self.sortmenu.delete(0, 'end')
             self.sample_names = []
             self.abundance_df = Abundances()
@@ -782,11 +782,12 @@ class Interaction(Frame):
         df = df[df.columns[:-2]]
         df.set_index(self.get_current_tax_level(), drop=True, inplace=True)
         filename = asksaveasfilename(title = "Select file",filetypes = (("csv","*.csv"),("tab","*.tab")))
-        if filename.split('.')[-1] == 'csv':
-            sep = ','
-        else:
-            sep = '\t'
-        df.to_csv(filename, sep=sep)
+        if filename != '':
+            if filename.split('.')[-1] == 'csv':
+                sep = ','
+            else:
+                sep = '\t'
+            df.to_csv(filename, sep=sep)
     
     def removeDump(self):
         """ removes the old dump_file """
@@ -806,7 +807,7 @@ class Interaction(Frame):
     def ChooseSample(self):
         """ chooses the sample that is displayed """
         sample_name = self.getSampleName()
-        self.abundance_df.getSample(sample_name)
+        self.abundance_df.getSample(sample_name, self.get_current_tax_level())
         self.parent.title('sample: ' + sample_name)
         self.max_abundance.delete(0, END)
         self.max_abundance.insert(10, '{0:.2f}'.format(self.abundance_df.getMaxAbundanceOfSample()))
@@ -878,19 +879,7 @@ class Interaction(Frame):
 
 def main():
     root = Tk()
-    root.title('')
-    
-    #set window to focus when starting application
-    #if platform() == 'Darwin':  # How Mac OS X is identified by Python
-    #    #system("""/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "python" to true' """)
-    #    pass
-    #else:
-    #    root.focus_force()
-    #if platform() == 'Darwin':
-    #    self.os = True
-    
-    #root.wait_visibility()
-    #root.event_generate('<Button-1>', x=0, y=0)    
+    root.title('')   
       
     top = root.winfo_toplevel()
     top.rowconfigure(0,weight=1)
@@ -901,9 +890,7 @@ def main():
     root.rowconfigure(1, weight=1)
     root.columnconfigure(1, weight=1)
     root.minsize(400,300)
-    #root.overrideredirect(1)   #removes root border frame (minimize, maximize and close buttons)
     app = Interaction(root)
-    #set_window_to_front(root)  #was making the menu bar unresponsive
     root.mainloop()  
 
 
