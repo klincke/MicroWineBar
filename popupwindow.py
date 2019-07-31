@@ -12,15 +12,11 @@ import Pmw
 import tkinter.messagebox as tmb
 from decimal import Decimal
 
-#from sklearn import decomposition
-
 from .general_functions import *
 from platform import system as platform
 
 from .displaying2 import DisplayingText
 from .popupwindow_matplotlib import PopUpIncludingMatplotlib
-
-#import scholar
 
 from random import shuffle
 
@@ -56,7 +52,6 @@ class PopUpGraph():
                             'skyblue4', 
                             'firebrick4']
         self.balloon = Pmw.Balloon(self.root)
-        #set_window_to_front(self.root)
         fonts_dict = get_fonts()
         self.root.option_add('*Listbox*Font', fonts_dict['listbox_font'])
         self.pcoa_toggle = itertools.cycle([[0,1], [0,2], [1,2]])
@@ -75,56 +70,6 @@ class PopUpGraph():
             tax_list2 = []
         tax_l_var = StringVar(value=tuple(tax_list2))
         self.sort_lbox.config(listvariable=tax_l_var)
-        
-#     def compare_groups_old(self, abundance_df):
-#         """ compares presence/absence of species in two groups of samples """
-#         self.data = abundance_df.getPresenceAbsenceDF(self.threshold.get())
-#         self.inner_frame.destroy()
-#         self.inner_frame = Frame(self.frame)
-#         self.inner_frame.grid(row=6, column=0, columnspan=6)
-#         canvas = create_canvas(frame=self.inner_frame, col=0, height=300, width=500, xscroll=False, colspan=2)
-#         canvas2 = create_canvas(frame=self.inner_frame, col=3, height=300, width=500, xscroll=False, colspan=2)
-#         samples_1 = self.samples_lbox.curselection()
-#         samples_2 = self.samples_lbox2.curselection()
-#         if len(set(samples_1).intersection(set(samples_2))) > 0:
-#             tmb.showinfo(title="error",
-#                         message="At least one sample is in both groups.\nPlease select unique samples for the two groups")
-#             return
-#         else:
-#             compare_1 = self.data[self.samples_list[samples_1[0]]]
-#             compare_2 = self.data[self.samples_list[samples_2[0]]]
-#             print('compare_1')
-#             print(compare_1)
-#             print(self.data.columns)
-#             print(self.data.index)
-#             print('self.data.iloc[1,1]')
-#             print(self.data.iloc[1,1])
-#             for i in samples_1[1:]:
-#                 compare_1 = np.where(compare_1 == self.data[self.samples_list[i]], compare_1, -2)
-#             for i in samples_2[1:]:
-#                 compare_2 = np.where(compare_2 == self.data[self.samples_list[i]], compare_2, -5)
-#             compared = np.where(compare_1 == compare_2, compare_1, compare_1+compare_2-3)
-#             index_present_both = np.where(compared == 1)[0]
-#             index_present_only1 = np.where(compared == -2)[0]
-#
-#             col = self.data.columns.tolist().index(self.samples_list[samples_1[0]])#1
-#             group_1 = []
-#             group_2 = []
-#             for idx in index_present_only1:
-#                 if self.data.iloc[idx,col] == 1:
-#                     group_1.append(self.data.index[idx])
-#                 else:
-#                     group_2.append(self.data.index[idx])
-#             if len(group_1)>0 or len(group_2)>0:
-#
-#                 pass
-#             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_1))
-#             canvas.create_text(10,10, text=txt, tags='renew', anchor=NW)
-#             canvas.config(scrollregion=[canvas.bbox(ALL)[0], canvas.bbox(ALL)[1], 500, canvas.bbox(ALL)[3]])
-#             txt = 'only in '+self.samples1_label.get()+':\n\n' + '\n'.join(sorted(group_2))
-#             canvas2.create_text(10,10, text=txt, tags='renew', anchor=NW)
-#             canvas2.config(scrollregion=[canvas2.bbox(ALL)[0], canvas2.bbox(ALL)[1], 500, canvas2.bbox(ALL)[3]])
-        
             
     def compare_groups(self, abundance_df, all_samples=True):
         """ compares presence/absence of species in two groups of samples """
@@ -246,10 +191,13 @@ class PopUpGraph():
         corr_button.grid(row=0, column=0, padx=5, pady=2)
         corr_filter_button = Button(correlation_frame, text='filter', command=self.correlation_groups_filter)
         corr_filter_button.grid(row=0, column=4, padx=5, pady=2)
-        
-        pca_button = Button(fsel_frame, text='PCA', command=self.pca)
+        if self.abundance_df.groupAbsoluteSamples() is None:
+            pca_button = Button(fsel_frame, text='PCA', command=self.pca, state=DISABLED)
+        else:
+            pca_button = Button(fsel_frame, text='PCA', command=self.pca)
         self.balloon.bind(pca_button, 'PCA based on isometric log ratio of the count data')
         pca_button.grid(row=0, column=2, padx=5, pady=2)
+        
         pcoa_button = Button(fsel_frame, text='PCoA (Bray-Curtis)', command=self.pcoa)
         self.balloon.bind(pcoa_button, 'Principal Coordindate analysis scatter plot based on Bray-Curtis dissimilarity')
         pcoa_button.grid(row=0, column=1, padx=5, pady=2)
@@ -292,10 +240,7 @@ class PopUpGraph():
 
     def create_overview_line_graph(self, working_samples, samples_list, tax_level, height=400, width=600, row=0, xscroll=False, yscroll=False):
         """ create line graph and list of samples displayed in graph """
-        #canvas = self.create_canvas(frame=self.inner_frame, row=row+0, height=120, width=600, yscroll=False, xscroll=False)
         canvas = create_canvas(frame=self.inner_frame, row=row+0, height=140, width=width, yscroll=False, xscroll=False, take_focus=True)
-        #canvas_list = self.create_canvas(frame=self.inner_frame, row=row+2, height=15, width=600, xscroll=False)
-        #canvas_list = create_canvas(frame=self.inner_frame, row=row+2, height=10, width=width, xscroll=False)
         displaying_text = DisplayingText(self.root, canvas)
         if len(samples_list)> 20:
             width = 1000
@@ -334,8 +279,6 @@ class PopUpGraph():
         all_covered = canvas.bbox(ALL)
         canvas.config(height=all_covered[3]-all_covered[1], width=all_covered[2]-all_covered[0])
         canvas.config(scrollregion=canvas.bbox(ALL))
-        #self.create_overview_list(samples_list, canvas_list)
-        #canvas_list.config(height=120)
     
     def create_overview_scaled_bar(self, working_samples, samples_list, current_tax_level):
         """ creates the overview bar graph """
@@ -346,15 +289,7 @@ class PopUpGraph():
         self.all_sample_names = list(samples_list)
         
         self.create_window()
-        #self.inner_frame = Frame(self.frame)
-        #self.inner_frame.grid(row=0, column=0, columnspan=4)
-        #popup_canvas = self.create_canvas(xscroll=False)
         popup_canvas = create_canvas(frame=self.frame, xscroll=False, yscroll=False, colspan=12, take_focus=True)
-        #popup_canvas = self.create_canvas(frame=self.inner_frame)
-        #canvas_list = self.create_canvas(frame=self.inner_frame)
-        #canvas_list = self.create_canvas(row=2, height=120, xscroll=False)
-        #canvas_list = create_canvas(frame=self.frame, row=2, height=100, xscroll=False, colspan=3)
-        #canvas_list = create_canvas(frame=self.frame, row=2, height=100, width=300, xscroll=False, colspan=9, rowspan=2)
         self.samples_lbox = Listbox(self.frame, 
                                 listvariable=StringVar(value=tuple(samples_list)),
                                 height=5,
@@ -362,33 +297,14 @@ class PopUpGraph():
                                 selectmode='extended',
                                 exportselection=0)
         self.samples_lbox.grid(row=2, column=0, columnspan=9, rowspan=2)
-        #reset_sort_button = Button(self.frame, text='reset ordering', command=lambda canvas=popup_canvas, canvas_list=canvas_list: self.sort_bars_time(canvas, canvas_list))
         
         select_samples_button = Button(self.frame, text='select samples', command=lambda canvas=popup_canvas : self.select_samples_for_stacked_bargraph(canvas))
         select_samples_button.grid(row=2, column=10)
         reset_sort_button = Button(self.frame, text='reset ordering', command=lambda canvas=popup_canvas: self.sort_bars_time(canvas))
         reset_sort_button.grid(row=3, column=10)
         
-        #reset_samples_button = Button(self.frame, text='include all samples', command=lambda canvas=popup_canvas, canvas_list=canvas_list: self.reset_to_all_samples(canvas, canvas_list))
-        #reset_samples_button = Button(self.frame, text='include all samples', command=lambda canvas=popup_canvas: self.reset_to_all_samples(canvas))
-        #reset_samples_button.grid(row=3, column=10)
         self.top.title('overview of all samples on ' + current_tax_level + ' level')
-        #HEIGHT = 400
-        #WIDTH = 800
-        #if len(samples_list)> 20:
-        #    WIDTH = 1000
-        #width = round((WIDTH-70)/len(samples_list))
-
-        #self.stacked_bar_graph(popup_canvas, [], samples_list, canvas_list)
- #       #self.stacked_bar_graph(popup_canvas, [], samples_list)
-        #self.create_overview_list(samples_list, canvas_list, tags="renew")
-        #if canvas_list.bbox(ALL)[3] < 100:
-        #    canvas_list.config(height=canvas_list.bbox(ALL)[3])
         
-
-        #all_covered = popup_canvas.bbox(ALL)
-        #popup_canvas.config(height=all_covered[3]-all_covered[1], width=all_covered[2]-all_covered[0])
-
         tax_l = StringVar(value=tuple(self.all_tax_levels[self.all_tax_levels.index(current_tax_level):]))
         self.tax_level_lbox = Listbox(self.frame, height=7, width=20, listvariable=tax_l, selectmode='browse', exportselection=0)
         self.tax_level_lbox.grid(row=4, column=0, columnspan=5)
@@ -401,7 +317,6 @@ class PopUpGraph():
         self.sort_lbox = Listbox(self.frame, height=7, width=50, listvariable=tax_l_var, selectmode='browse', yscrollcommand=yscroll.set, exportselection=0)
         self.sort_lbox.grid(row=4, column=5, columnspan=6)
         yscroll.config(command=self.sort_lbox.yview)
-        #self.sort_lbox.bind("<<ListboxSelect>>", lambda event, popup_canvas=popup_canvas, canvas_list=canvas_list : self.sort_bars(popup_canvas, canvas_list))
         self.sort_lbox.bind("<<ListboxSelect>>", lambda event, popup_canvas=popup_canvas : self.sort_bars(popup_canvas))
         self.sort_lbox.bind("<Button-2>", lambda event, canvas=popup_canvas : self.highlight_bars_black(event, canvas))
         
@@ -416,9 +331,7 @@ class PopUpGraph():
                 self.first_stacked_bar = True
             self.new_samples_list = selected_samples
             if self.first_stacked_bar:
-                #self.stacked_bar_graph(canvas, [], self.all_sample_names)
                 self.stacked_bar_graph(canvas, [], selected_samples)
-                #self.first_stacked_bar = False
             indexes = self.samples_lbox.curselection()
             for i in range(len(self.all_sample_names)):
                 if i not in indexes:
@@ -453,7 +366,6 @@ class PopUpGraph():
         self.frame.grid(row=0, column=0, sticky=N+S+W+E)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_rowconfigure(0, weight=1)
-        #self.top.title(self.name)
         self.top.focus_set()
         
     
@@ -477,11 +389,7 @@ class PopUpGraph():
         else:
             if graph == 'line':
                 self.create_overview_line_graph(working_samples, samples_1, 'species', height=140, width=750, row=0)
-                self.create_overview_line_graph(working_samples, samples_2, 'species', height=140, width=750, row=3)
-            else:
-                self.create_overview_bar_graph(working_samples, samples_1, 'species', height=140, width=750, row=0)
-                self.create_overview_bar_graph(working_samples, samples_2, 'species', height=140, width=750, row=3)
-            #self.add_title_to_canvas()    
+                self.create_overview_line_graph(working_samples, samples_2, 'species', height=140, width=750, row=3)  
     
     def create_overview_list(self, samples_list, canvas, tags=None):
         """ creates of species names which are displayed in a graph """
@@ -489,7 +397,6 @@ class PopUpGraph():
         for i, sample in enumerate(samples_list):
             canvas.create_text(30, (i+1)*15, text=str(i+1) + '\t' + sample, anchor=NW, tags=tags)
         canvas.config(scrollregion=canvas.bbox(ALL))
-        #canvas.config(height=80)
     
     def stacked_bar_graph(self, popup_canvas, indexes, samples_list):
         """ creates the stacked bar graph (bars etc.) """
@@ -518,18 +425,11 @@ class PopUpGraph():
                 if self.working_samples.loc[idx,'colour'] != 'undefined':
                     col = self.working_samples.loc[idx,'colour']
     
-                #tax_list = list(self.working_samples.loc[idx,:samples_list[0]])[:-1]
                 tag = self.working_samples.loc[idx, self.current_tax_level]
                 if idx in indexes:
                     highlight_height += self.working_samples.loc[idx, sample]*HEIGHT/sample_height
-                #b = BarBox(canvas=popup_canvas, coords=coords, color=col, name=tag, root=self.root)
                 b = BarBox(self.root, samples_list, self.abundance_df, self.all_tax_levels)
                 item = b.drawBar(canvas=popup_canvas, coords=coords, color=col, name=tag, sample=sample)
-                #item = popup_canvas.create_rectangle(coords, outline=col, fill=col, tags=tag.replace(' ','_'))
-                #self.balloon.tagbind(popup_canvas, item, tag)
-                #popup_info = PopUpInfo(self.root, tag, tax_list, self.all_tax_levels)
-                #popup_canvas.tag_bind(item, '<Command-Button-2>', lambda event, new_bool=1: popup_info.do_popup(event, new_bool))
-                #popup_canvas.tag_bind(item, '<Button-2>', lambda event, new_bool=0: popup_info.do_popup(event, new_bool))
                 item_height = self.working_samples.loc[idx, sample]*HEIGHT/sample_height
                 self.stacked_bar_dict[sample][idx] = (item, item_height)
             if highlight_height != 0:
@@ -538,29 +438,19 @@ class PopUpGraph():
             height2 = self.working_samples.sum(axis=0, numeric_only=True)[sample]*50/max_height
             self.frames_height_dict[sample] = height2
             coords2 = (70+j*self.width, HEIGHT+60-height2, 70+(j+1)*self.width, HEIGHT+60)
-            #item = popup_canvas.create_rectangle(coords2, fill='forestgreen', tags=('renew', sample))
             self.displaying_height.drawHeight(coords2, sample)
-            #if platform() == 'Windows':  #windows
-            #    popup_canvas.tag_bind(item, '<Button-3>', lambda event, canvas=popup_canvas, sample=sample, canvas_list=canvas_list: self.removeSample(event, canvas, sample, canvas_list))
-            #else:
-            #    popup_canvas.tag_bind(item, '<Button-2>', lambda event, canvas=popup_canvas, sample=sample, canvas_list=canvas_list: self.removeSample(event, canvas, sample, canvas_list))
-            #b.drawBox(canvas=popup_canvas, coords=coords2, color='forestgreen', sample=sample)
             popup_canvas.create_text(70+(j+0.5)*self.width,HEIGHT+80, text=str(j+1), anchor=NW)
-            #popup_canvas.create_text(20, HEIGHT+110+(j+1)*15, text=str(j+1) + '\t' + sample, tags='renew', anchor=NW)#, justify=CENTER)
         popup_canvas.create_line(70, 0, 70, HEIGHT)
         popup_canvas.create_line(70, 
                                 HEIGHT, 
-                                #len(self.new_samples_list)*self.width + 70, 
                                 len(samples_list)*self.width + 70, 
                                 HEIGHT)
         popup_canvas.create_line(70, 
                                 HEIGHT+60, 
-                                #len(self.new_samples_list)*self.width + 70, 
                                 len(samples_list)*self.width + 70, 
                                 HEIGHT+60)
         popup_canvas.create_line(70, HEIGHT+10, 70, HEIGHT+60)
         popup_canvas.create_text(20, HEIGHT+40, text='actual \nheight', anchor=NW)
-        #popup_canvas.create_text(20, HEIGHT+110, text='number\t sample name', anchor=NW)
         n = 10
         idx = 0
         for j in range(0, HEIGHT, int(HEIGHT/n)):
@@ -583,7 +473,6 @@ class PopUpGraph():
 
         
         for i, sample in enumerate(self.new_samples_list):
-        #for i, sample in enumerate(new_samples_list):
             old_start_height = self.HEIGHT
             x1 = 70+i*self.width
             x2 = 70+(i+1)*self.width
@@ -593,16 +482,7 @@ class PopUpGraph():
                 old_start_height -= self.stacked_bar_dict[sample][idx][1]
                 canvas.coords(item, new_coords)
             new_coords2 = (x1, self.HEIGHT+60, x2, self.HEIGHT+60-self.frames_height_dict[sample])    
-            #item = canvas.create_rectangle(new_coords2, fill='forestgreen', tags='renew') 
             self.displaying_height.drawHeight(new_coords2, sample)
-            #if platform() == 'Windows':  #windows
-            #    canvas.tag_bind(item, '<Button-3>', lambda event, canvas=canvas, sample=sample, canvas_list=canvas_list: self.removeSample(event, canvas, sample, canvas_list))
-            #else:
-            #    canvas.tag_bind(item, '<Button-2>', lambda event, canvas=canvas, sample=sample, canvas_list=canvas_list: self.removeSample(event, canvas, sample, canvas_list))
-            #if heights_series[sample] != 0:
-            #    canvas.create_rectangle((x1, (1-heights_series[sample])*self.HEIGHT, x2, self.HEIGHT), outline='red', width=4, tags='renew')     
-        #self.highlight_bars(heights_series, canvas, 'red')
-        #self.create_overview_list(self.new_samples_list, canvas_list, tags='renew')
         
     def highlight_bars(self, heights_series, canvas, color):
         """ hightlights the bars in colour """
@@ -642,17 +522,12 @@ class PopUpGraph():
         num_of_tax_levels = len(self.all_tax_levels[self.all_tax_levels.index(self.current_tax_level):])
         cols = self.working_samples.columns.tolist()[:num_of_tax_levels-1] + series.index.tolist() + ['masked']
         self.working_samples = result.reindex_axis(cols, axis=1)#, copy=False)
-        #self.new_samples_list = series.loc[self.new_samples_list].index.tolist()
         new_samples = []
         for sample1 in series.index:
             if sample1 in self.new_samples_list:
                 new_samples.append(sample1)
-            #else:
-            #    series.drop(sample1, inplace=True)
         self.new_samples_list = new_samples
-        #self.redraw_bars(series, canvas, canvas_list)
         return series
-        #self.highlight_bars(heights_series, canvas, 'red')
         
     def sort_bars_time(self, canvas):
         """ sorts the bars in the stacked bar graph alphabetically (original order) """
@@ -727,21 +602,13 @@ class PopUpGraph():
         for i, sample in enumerate(samples):
             x = 50 + (compensate_ab1+abundance1[i])/new_abundance1_max*height
             y = top_space+height - (compensate_ab2+abundance2[i])/new_abundance2_max*height
-            #canvas.create_oval(x-r, y-r, x+r, y+r)
             displaying_sample_name.drawCircle((x-r, y-r, x+r, y+r), sample, colour=colours[i])
             canvas.create_line(50, top_space+0, 50, top_space+height)
             canvas.create_line(50, top_space+height, WIDTH, top_space+height)
-            #for j in xrange(0, int(height), 50):
-            #    canvas.create_line((45, top_space+height-j, 50, top_space+height-j))
-            #    #canvas.create_text(0, top_space+height-j, text='{0:.2f}'.format(float(j)/height*abundance2_max), anchor=NW)
-            #for j in xrange(0, int(width), 50):
-            #    canvas.create_line(50+j, top_space+height, 50+j, top_space+height+5)
-            #    #canvas.create_text(50+j, top_space+height+10, text='{0:.2f}'.format(float(j)/height*abundance1_max), anchor=NW)
         for n, j in enumerate(np.linspace(abundance2_min, abundance2_max, num=7)):
             n *= 50
             canvas.create_line((45, top_space+height-n, 50, top_space+height-n))
             canvas.create_text(0, top_space+height-n, text='{0:.2f}'.format(j), anchor=NW)
-            #print(float(j)/height*abundance2_max)
         for n, j in enumerate(np.linspace(abundance1_min, abundance1_max, num=7)):
             n *= 50
             canvas.create_line(50+n, top_space+height, 50+n, top_space+height+5)
@@ -782,7 +649,6 @@ class PopUpGraph():
         tax_level_label = Label(self.frame, text='taxonomic level:')
         tax_level_label.grid(column=0, row=1)
         self.tax_level_lbox = Listbox(self.frame, selectmode='browse', exportselection=0, height=7, listvariable=StringVar(value=tuple(self.all_tax_levels)))
-        #, width=20
         self.tax_level_lbox.grid(column=1, row=1, columnspan=2, sticky='NESW')
         tax_level_scroll = Scrollbar(self.frame, orient=VERTICAL, command=self.tax_level_lbox.yview)
         tax_level_scroll.grid(column=3, row=1, sticky = 'NW' + 'SW')
@@ -891,7 +757,6 @@ class PopUpGraph():
                 if self.corr_results_df.loc[key, 'r'] >= r and self.corr_results_df.loc[key, 'p'] < p:
                     if self.corr_results_df.loc[key, 'name1'] != self.corr_results_df.loc[key, 'name2']:
                         entry = '{:40s} {:40s} {:7.2f} {:7.2e} {:11.3f} {:11.3f}'.format(self.corr_results_df.loc[key, 'name1'], self.corr_results_df.loc[key, 'name2'], self.corr_results_df.loc[key, 'r'], self.corr_results_df.loc[key, 'p'], self.corr_results_df.loc[key, 'max_name1'], self.corr_results_df.loc[key, 'max_name2'])
-                        #entry = '{:40s} {:40s} {:7.2f} {:7.2e}'.format(self.corr_results_df.loc[key, 'name1'], self.corr_results_df.loc[key, 'name2'], self.corr_results_df.loc[key, 'r'], self.corr_results_df.loc[key, 'p'])
                         self.results_lbox.insert(END, entry)
         
     def calculate_classification(self):
@@ -950,83 +815,6 @@ class PopUpGraph():
         except ValueError as error:
             print(error)
             tmb.showerror(title="error", message=error)
-              
-    
-    def richness_groups_boxplot(self):
-        """  """
-        import matplotlib
-        matplotlib.use("TkAgg")
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
-        from matplotlib.figure import Figure
-        
-        top = Toplevel(self.top)
-        top.protocol("WM_DELETE_WINDOW", self.cancel)
-        top.attributes("-topmost", 1)
-        top.attributes("-topmost", 0)
-        top.columnconfigure(0, weight=1)
-        top.rowconfigure(0, weight=1)
-        frame = Frame(top)
-        frame.grid(row=0, column=0, sticky=N+S+W+E)
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
-        #self.top.title(self.name)
-        #top.focus_set()
-        
-        #get data
-        df = self.abundance_df.groupAllSamples()
-        df = df[df.columns[:-1]]
-        df = df[df['masked']==False]
-        df.index = df.loc[:,self.tax_level]
-        df = df.drop('-', errors='ignore')
-        samples_1 = [self.samples_list[x] for x in list(self.samples_lbox.curselection())]
-        samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
-        samples = samples_1+samples_2
-        
-        #calculate richness and shannon index
-        start_idx = len(self.all_tax_levels) - list(self.all_tax_levels).index(self.tax_level2)
-        richness = df.astype(bool).sum(axis=0)[start_idx:-1]
-        shannon  = []
-        for sample in samples:
-            #shannon.append(shannon_index(df[sample].as_matrix()))
-            shannon.append(shannon_index(df[sample].values))
-        shannon = pd.Series(shannon, index=samples)
-        
-        #create dataframe from the results to plot
-        df2 = pd.DataFrame([richness, shannon], index=['richness','shannon_index'], columns=samples)
-        df2 = df2.transpose()
-        df2['group'] = np.array([self.samples1_label.get()]*len(samples_1) + [self.samples2_label.get()]*len(samples_2))
-        
-        #fig, ax = plt.subplots()
-        fig = Figure(figsize=(5,7), dpi=100)
-        ax = fig.add_subplot(211)
-        #data = [df2[df2['group']==self.samples1_label.get()]['richness'].as_matrix(), df2[df2['group']==self.samples2_label.get()]['richness'].as_matrix()]
-        data = [df2[df2['group']==self.samples1_label.get()]['richness'].values, df2[df2['group']==self.samples2_label.get()]['richness'].values]
-        labels = [self.samples1_label.get(),self.samples2_label.get()]
-        ax.boxplot(data)
-        ax.set_xticklabels(labels, rotation=45, fontsize=8)
-        ax.set_title('richness')
-        ax = fig.add_subplot(212)
-        #data = [df2[df2['group']==self.samples1_label.get()]['shannon_index'].as_matrix(), df2[df2['group']==self.samples2_label.get()]['shannon_index'].as_matrix()]
-        data = [df2[df2['group']==self.samples1_label.get()]['shannon_index'].values, df2[df2['group']==self.samples2_label.get()]['shannon_index'].values]
-        ax.boxplot(data)
-        ax.set_xticklabels(labels, rotation=45, fontsize=8)
-        ax.set_title('shannon_index')
-        #plt.show()
-        fig.subplots_adjust(left=0.08, right=0.98, bottom=0.05, top=0.9, hspace=0.4, wspace=0.3)
-        #canvas = FigureCanvasTkAgg(fig, self.frame)
-        canvas = FigureCanvasTkAgg(fig, frame)
-        canvas.draw()
-        #canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-        canvas.get_tk_widget().grid(row=1, column=1)
-
-        toolbar_frame = Frame(frame)
-        toolbar_frame.grid(row=2,column=2)
-        toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
-        toolbar.update()
-        #canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
-        #canvas._tkcanvas.grid(row=2, column=1)
-        
     
     def treeview_sort_column(self, tv, col, reverse):
         """ sorts the table by coloumn """
@@ -1120,8 +908,8 @@ class PopUpGraph():
         samples_2 = [self.samples_list[x] for x in list(self.samples_lbox2.curselection())]
         samples = samples_1+samples_2
         
-        if len(samples_1) < 1 or len(samples_2) < 1:
-            tmb.showerror(title="error", message="Choose at least one sample for each group.")
+        if len(samples_1) < 2 or len(samples_2) < 2:
+            tmb.showerror(title="error", message="Choose at least two samples for each group for ANCOM to work.")
             return
         else:
 
@@ -1130,7 +918,8 @@ class PopUpGraph():
         
             open_popup_window = OpenPopUpWindow(self.root, self.all_tax_levels, self.samples_list, self.abundance_df, samples_1, samples_2)
             df = self.abundance_df.groupAbsoluteSamples()[samples]
-        
+            df.index = [tax.strip('_') for tax in df.index]
+
             mr_df = multiplicative_replacement(df.T)
             grouping = pd.Series([label_1] *len(samples_1) + [label_2] *len(samples_2), index=samples)
             ancom_df, percentile_df = ancom(pd.DataFrame(mr_df, index=df.columns, columns=df.index), grouping, multiple_comparisons_correction='holm-bonferroni')
@@ -1153,7 +942,7 @@ class PopUpGraph():
             percentiles = [0.0, 25.0, 50.0, 75.0, 100.0]
             columns2 =['W']
             for percentile in percentiles:
-                columns2 += ['{}_{}percentile'.format(label_1, percentile), '{}_{}percentile'.format(label_1, percentile)]
+                columns2 += ['{}_{}percentile'.format(label_1, percentile), '{}_{}percentile'.format(label_2, percentile)]
             results_df = pd.DataFrame(columns=columns2, index=sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index))
             for species in sorted(ancom_df[ancom_df['Reject null hypothesis']==True].index):
                 values = [species, ancom_df.loc[species,'W'], '{0:.2e}'.format(percentile_df[50.0].loc[species,label_1]), '{0:.2e}'.format(percentile_df[50.0].loc[species,label_2])]
@@ -1228,6 +1017,7 @@ class PopUpGraph():
             popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
             if self.abundance_df is not None:
                 working_samples = self.abundance_df.groupAllSamples()
+                #working_samples = self.abundance_df.groupAbsoluteSamples()
             popup_matplotlib.shannon_diversity_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, shannon, self.samples1_label.get(), self.samples2_label.get())
 
     def correlation_groups(self):
@@ -1285,14 +1075,12 @@ class PopUpGraph():
         """ filters correlation for groups by padj """
         corr_df = self.groups_corr_df
         results_list = []
-        #txt = '{:45s} {:45s} {:9s} {:13s} {:9s} {:13s}'.format('species1', 'species2', 'R (group1)', 'padj (group1)', 'R (group2)', 'padj (group2)')
         txt = '{:25s} {:42s} {:9s} {:13s} {:9s} {:13s}'.format('species1', 'species2', 'R ('+self.samples1_label.get()+')', 'padj ('+self.samples1_label.get()+')', 'R ('+self.samples2_label.get()+')', 'padj ('+self.samples2_label.get()+')')
         results_list.append(txt)
         for idx in corr_df.index:
             if float(corr_df.loc[idx,'p1_adj']) < 0.05 and float(corr_df.loc[idx,'p2_adj']) < 0.05:
                 if float(corr_df.loc[idx,'r1']) + float(self.corr_r_threshold.get()) < float(corr_df.loc[idx,'r2']) or float(corr_df.loc[idx,'r1']) - float(self.corr_r_threshold.get()) > float(corr_df.loc[idx,'r2']):
                     species1, species2 = idx.split(' / ')
-                    #txt = '{:45s} {:45s} {:9.2f} {:13.2E} {:9.2f} {:13.2E}'.format(species1, species2, round(corr_df.loc[idx, 'r1'],2), Decimal(corr_df.loc[idx, 'p1_adj']), round(corr_df.loc[idx, 'r2'],2), Decimal(corr_df.loc[idx, 'p1_adj']))
                     txt = '{:25s} {:42s} {:9.2f} {:13.2E} {:9.2f} {:13.2E}'.format(species1, species2, round(corr_df.loc[idx, 'r1'],2), Decimal(corr_df.loc[idx, 'p1_adj']), round(corr_df.loc[idx, 'r2'],2), Decimal(corr_df.loc[idx, 'p1_adj']))
                     results_list.append(txt)
         results_var = StringVar(value=tuple(results_list))
@@ -1335,8 +1123,6 @@ class PopUpGraph():
             for item in principalComponents:
                 pc1.append(item[0])
                 pc2.append(item[1])
-            #print(pc1)
-            #print(pc2)
             explained_variance = [str(round(item*100,2)) for item in pca.explained_variance_ratio_]
             colours = ['cornflowerblue' if target else 'darkgreen' for target in targets]
             self.draw_scatter_plot(canvas, 'PC1 ('+explained_variance[0]+'%)', 'PC2 ('+explained_variance[1]+'%)', pc1, pc2, samples, colours)
@@ -1378,14 +1164,11 @@ class PopUpGraph():
             bc_dm = beta_diversity('braycurtis', X_var, list(new_names), validate=False) #bray-curtis dissimilarity matrix
             pc_nums = next(self.pcoa_toggle)
             bc_pc = pcoa(bc_dm)
-            #pco1_prp_expl, pco2_prp_expl = list(bc_pc.proportion_explained)[:2]
             pco1_prp_expl = list(bc_pc.proportion_explained)[pc_nums[0]]
             pco2_prp_expl = list(bc_pc.proportion_explained)[pc_nums[1]]
             pco1_prp_expl = str(round(pco1_prp_expl*100,2))
             pco2_prp_expl = str(round(pco2_prp_expl*100,2))
             coord_matrix = bc_pc.samples.values.T
-            #pco1 = coord_matrix[0]
-            #pco2 = coord_matrix[1]
             pco1 = coord_matrix[pc_nums[0]]
             pco2 = coord_matrix[pc_nums[1]]
             sample_names = list(df.loc[:,train_cols].columns)
@@ -1404,15 +1187,6 @@ class PopUpGraph():
             popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
             popup_matplotlib.pcoa(pco1_group2, pco1_group1, pco2_group2, pco2_group1, self.samples1_label.get(), self.samples2_label.get(), pc_nums)
         
-    def do_pop_up(self, event, name):
-        """ do popup """
-        popup_info = PopUpInfo(self.root, [], self.all_tax_levels, self.tax_level2, self.samples_list, self.abundance_df)
-        popup_info.do_popup(event, new_bool=1, name=name)
-        
-    def get_info(self, name):
-        """ get info """
-        popup_menu = PopUpMenu(self.root, name, None, self.abundance_df, threshold_slider=None, tax_list=[], meta_df=None, all_tax_levels=self.all_tax_levels, current_tax_level='species')   
-
 
         
 class PopUpWindow():
@@ -1485,10 +1259,6 @@ class PopUpWindow():
     def always_together(self, pattern_dict, singletons_dict):
         """ displays the groups of species which are always together in a sample """
         self.top.title('species that are always together in samples')
-        ##self.get_top_level_id()
-        #canvas = create_canvas(frame=self.frame, height=400, width=700, xscroll=False)
-        #WIDTH = 700-10
-        #canvas.create_text(10,30, text="{:<8}{:}".format('group', 'species\n'), anchor=NW, width=WIDTH, font='bold')
         
         scroll = Scrollbar(self.frame, orient=VERTICAL)
         scroll.grid(row=0, column=3, sticky=N+S)
@@ -1501,32 +1271,12 @@ class PopUpWindow():
             txt += "{:<10}{:}".format(str(idx), ', '.join(sorted(species_list)) + '\n')
             txt = "{:<10}{:}".format(str(idx), ', '.join(sorted(species_list)) + '\n')
             self.text.insert(END, txt)
-        #txt += '\n\nspecies that have a unique presence/absence pattern in all samples:\n'
         txt = '\n\nspecies that have a unique presence/absence pattern in all samples:\n'
         self.text.insert(END, txt)
-        #txt += '\n'.join(sorted(singletons_dict.values()))
         txt = '\n'.join(sorted(singletons_dict.values()))
         self.text.insert(END, txt)
         self.text.config(state=DISABLED)
-        ##countVar = StringVar()
-        ##text.tag_configure("search", background="green")
-        ##pos = text.search('cerevisiae', "1.0", stopindex="end", count=countVar)
-        ##text.tag_add("search", pos, "%s + %sc" (pos, countVar.get()))
-        #start = 1.0
-        #pos = self.text.search("cerevisiae", start, stopindex=END)
-        #self.text.see(pos)
-        #self.highlight("cerevisiae")
-        ##while 1:
-        ##    pos = text.search("cerevisiae", start, stopindex=END)
-        ##    if not pos:
-        ##        break
-        ##    print(pos)
-        ##    start = pos + "+1c"
-        ##canvas.create_text(10,50, text=txt, anchor=NW, width=WIDTH)
-        ##canvas.config(height=500, width=700)
-        ##canvas.config(scrollregion=canvas.bbox(ALL))#, height=self.popup_canvas.bbox(ALL)[3])
         
-        #text.insert(END, txt)
         scroll.config(command=self.text.yview)
         self.text.configure(yscrollcommand=scroll.set)
         
@@ -1616,7 +1366,7 @@ class PopUpWindow():
                                 text='{0:.2f}'.format(float(j)/height*max(abundances)),
                                 anchor = NW)
             canvas.config(scrollregion=canvas.bbox(ALL))
-    
+
     def correlation_groups(self):
         """ correaltion """
         self.inner_frame.destroy()
@@ -1786,12 +1536,10 @@ class PopUpWindow():
         
             title = 'correlation with other %s for %s' % (current_taxlevel, name)
             corr_button = Button(self.frame, text='calculate correlation', command=lambda name=name, current_taxlevel=current_taxlevel, col2=col2, meta=meta : self.create_correlation_button(name, current_taxlevel, col2, meta))
-            #corr_button = Button(self.frame, text='calculate correlation', command=lambda name=name, current_taxlevel=current_taxlevel, col2=col2 : self.create_correlation_button(name, current_taxlevel, col2))
             corr_button.grid(row=0, column=2)
         else:
             title = 'correlation with metadata for ' + name
             self.create_correlation_button(name, current_taxlevel, col2, meta)
-            #corr_button = Button(self.frame, text='calculate correlation', command=lambda name=name, current_taxlevel=current_taxlevel, col2=col2 : self.create_correlation_button(name, col2))
         self.top.title(title)# + self.name)
         
         
@@ -1813,13 +1561,7 @@ class PopUpWindow():
                 txt=str(name)
                 canvas.create_text(10,idx*15+30, text=txt, anchor=NW, width=WIDTH)
                 txt=str(corr_series[name])
-                #print(corr_series[name])
                 col = 'black'
-                #split on tab, convert to number, check absolute value, print
-                #if corr_series[name] > 0.8:
-                #    col = 'darkgreen'
-                #elif corr_series[name] < 0.3:
-                #    col = 'darkred'
                 canvas.create_text(col2,idx*15+30, text=txt, anchor=NW, width=WIDTH, fill=col)
         else:
             if header[0] != 'metadata':
@@ -1843,7 +1585,6 @@ class PopUpMenu():
         self.name = name
         self.pop_ups = pop_ups
         self.abundance_df = abundance_df
-        #self.threshold_slider = threshold_slider
         self.tax_list = tax_list
         self.meta_df = meta_df
         self.all_tax_levels = all_tax_levels
@@ -1882,15 +1623,11 @@ class PopUpMenu():
             text = 'no metadata loaded'
             corr_series = ''
         title = 'correlation with metadata for ' + self.name + ':'
-        #self.window.create_correlation(text, corr_series, title, ('metadata', 'correlation coefficients (normal & shifted by one time point)'), 250)
         self.window.create_correlation(self.name, self.current_tax_level, col2=250, meta=self.meta_df)
         
     def corr_species(self, event=None):
         """ displays the species that have a similar abundance in all samples """
         self.check_if_new_window()
-        #text, corr_series = self.abundance_df.getCorrelationForSpecies(self.name, float(self.threshold_slider.get()))
-        #title = 'correlation with other species for ' + self.name + ':'
-        #self.window.create_correlation(text, corr_series, title)
         self.window.create_correlation(self.name, self.current_tax_level)
     
     def create_menu(self):
@@ -1953,8 +1690,7 @@ class PopUpInfo():
         """ creates popup window for abundance graph """
         window = PopUpWindow(self.root, self.name)
         df = self.abundance_df.getDataframe()
-        df2 = df.loc[df['species']==self.name]
-        abundances = df2[self.samples].values[0]
+        abundances = df.loc[df[self.all_tax_levels[0]]==self.name][self.samples].values[0]
         window.create_graph(abundances, self.samples)
         
     def groups_abundances(self, event=None):
@@ -1964,8 +1700,7 @@ class PopUpInfo():
         df = self.abundance_df.groupAllSamples()
         df = df[df.columns[:-1]]
         df = df[df['masked']==False]
-        df2 = df.loc[df[self.tax_level]==self.name]
-        abundances = df2
+        abundances = df.loc[df[self.tax_level]==self.name]
         window.create_groups_graph(abundances, self.samples, self.groups)
         
     def show_information(self, event=None):
