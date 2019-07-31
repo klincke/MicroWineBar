@@ -146,14 +146,16 @@ def shannon_index(abundances, base=None):
     elif base == 2:
         return -sum(abundances*np.log2(abundances))
 
-def clr_transformed(df):
-    """ """
+def clr_transformed(df, masked=False):
+    """ return a center log-ratio (clr)-transformed dataframe for a dataframe with raw counts """
     from skbio.stats.composition import clr
     from skbio.stats.composition import multiplicative_replacement
-    ids = list(df.columns)
-    index0 = list(df.index)
-    data1 = clr(df.transpose().values.tolist())
-    mr_df = multiplicative_replacement(df.T)
-    mr_clr = clr(mr_df)
-    mr_clr_df = pd.DataFrame(mr_clr.T, index=index0, columns=ids)
-    return mr_clr_df
+    import pandas as pd
+    if masked:
+        df2 = df[df['masked']==False]
+        df2.select_dtypes(include=int).apply(multiplicative_replacement).apply(clr)
+        df[df.select_dtypes(include=int).columns.tolist()] = None
+        df.update(df2)
+    else:
+        df[df.select_dtypes(include=int).columns.tolist()] = df.select_dtypes(include=int).apply(multiplicative_replacement).apply(clr)
+    return df
