@@ -4,6 +4,7 @@ from openpyxl import workbook
 from openpyxl import load_workbook
 import numpy as np
 from scipy.stats import spearmanr
+from .general_functions import *
 
 
 class Abundances():
@@ -31,31 +32,30 @@ class Abundances():
             self.tax_levels = self.abundance_df.columns.tolist()[2:]
             self.abundance_df = self.abundance_df[self.abundance_df.columns.tolist()[0:2] + self.tax_levels]
             self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
-            #self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-            #self.abundance_df.set_index(['{}_'.format(item) for item in self.tax_levels[0]], drop=False, inplace=True)
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None 
 
             self.abundance_raw_df = self.abundance_df.loc[:,[self.abundance_df.columns[1]] + self.tax_levels]
             self.abundance_raw_df.rename(columns={self.abundance_raw_df.columns[0]:sample_name}, inplace=True)
+            self.abundance_raw_df.index = self.abundance_raw_df[self.tax_levels[0]]+'_'
+            self.abundance_raw_df.index.name = None 
             self.abundance_df = self.abundance_df.loc[:,[self.abundance_df.columns[0]] + self.tax_levels]
         else:
             sample_df = pd.read_csv(filename, header=0, sep='\t')
             sample_raw_df = sample_df.loc[:,[sample_df.columns[1]]+self.tax_levels]
             sample_raw_df.rename(columns={sample_raw_df.columns[0]:sample_name}, inplace=True)  
-            #sample_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True)
+            sample_raw_df.index = sample_raw_df[self.tax_levels[0]]+'_'
+            sample_raw_df.index.name = None
             sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)  
-            #sample_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-            #sample_df.set_index(['{}_'.format(item) for item in self.tax_levels[0]], drop=False, inplace=True)
-
-            #print(self.abundance_df.head())
-            #print(sample_df.head())
-            #print(self.tax_levels)
+            sample_df.index = sample_df[self.tax_levels[0]]+'_'
+            sample_df.index.name = None 
             self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=self.tax_levels)
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)  
-            self.abundance_df.index.names = [None] 
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None
             self.abundance_df.fillna(value=0, inplace=True) 
             self.abundance_raw_df = pd.merge(self.abundance_raw_df, sample_raw_df, how='outer', on=self.tax_levels)
-            self.abundance_raw_df.set_index(self.tax_levels[0], drop=False, inplace=True) 
-            self.abundance_raw_df.index.names = [None]  
+            self.abundance_raw_df.index = self.abundance_raw_df[self.tax_levels[0]]+'_'
+            self.abundance_raw_df.index.name = None  
             self.abundance_raw_df.fillna(value=0, inplace=True)
         self.abundance_df[sample_name] = self.abundance_df[sample_name].astype(float)
         self.abundance_raw_df[sample_name] = self.abundance_raw_df[sample_name].astype(float)
@@ -279,9 +279,8 @@ class Abundances():
         return self.abundance_df.loc[species,sample]
 
     def getAbundances(self, species):
-        """ gets the abundances in all samples for a given species (if it is unmarked) """
-        #return self.abundance_df.loc[[species],:]    
-        return self.abundance_df[self.abundance_df['species']==species]
+        """ gets the abundances in all samples for a given species (if it is unmarked) """ 
+        return self.abundance_df[self.abundance_df[self.tax_levels[0]]==species]
     
     def getDataframe(self):
         return self.abundance_df
@@ -418,21 +417,47 @@ class Abundances():
         except: maximum = 0
         return maximum
     
+    def getMaxAbundanceOfClrSample(self):
+        """ gets the maximum abundance of all unmasked species """
+        #try: maximum = max(self.clr_sample['abundance'])+0.001
+        try: maximum = max(self.clr_sample)+0.01
+        except: maximum = 0
+        return maximum
+
+    def getMinAbundanceOfClrSample(self):
+        """ gets the minimum abundance of all unmasked species """
+        #try: minimum = min(self.clr_sample['abundance'])-0.001
+        try: minimum = min(self.clr_sample)-0.01
+        except: minimum = 0
+        return minimum
+
     def getPresenceAbsenceDF(self, threshold):
         """ gets a dataframe giving the presence/absence of organisms """
         binaryAbundance = (self.abundance_df[self.sample_names] > threshold) * 1
-        binaryAbundance.index = list(self.abundance_df['species'])
+        binaryAbundance.index = list(self.abundance_df[self.tax_levels[0]])
         return binaryAbundance
     
-    def getSample(self, sample_name):
+    def getSample(self, sample_name, tax_level):
         """ gets sample to work with """
+        self.sample_name = sample_name
         columns = self.tax_levels + [sample_name, 'masked']
         self.sample = self.abundance_df[columns]
         self.sample = self.sample[self.sample[sample_name] > 0]
         self.sample = self.sample.rename(columns = {sample_name: 'abundance'})
         self.sample[self.sample['masked']==False]
-        self.sample.index.names = [None]
+        self.sample.index.name = None
+        self.tax_level = tax_level
         
+    def getClrSample(self, sample_name, tax_level=None):
+        """ gets clr-tranformed sample to work with """
+        self.sample_name = sample_name
+        if tax_level is not None:
+            self.tax_level = tax_level
+        df_clr = self.groupClrSamples()
+        self.clr_sample = df_clr[sample_name]
+        self.clr_sample = self.clr_sample.rename(columns = {sample_name: 'abundance'})
+        return self.clr_sample
+
     def getSamplesList(self):
         """ gets the list of samples (currently loaded) """
         return self.sample_names    
@@ -440,20 +465,18 @@ class Abundances():
     def getWorkingSample(self, tax_level, as_index=False):
         """ gets sample grouped on current tax_level """
         levels = self.tax_levels[self.tax_levels.index(tax_level):]
-        #print(self.sample.head())
-        #print(levels)
         grouped = self.sample.groupby(levels, sort=False, as_index=as_index).sum()#['abundance']
         grouped.index = range(len(grouped.index))
         self.tax_level = tax_level
         return grouped[grouped['masked'] == False]
-       
+
     def getValuesForColumn(self, columnname):
         """ gets as list of the unique entries of a column"""
         return list(self.abundance_df[columnname].unique())
        
     def getNotHidden(self):
         """ gets a dataframe of containing only the rows which are not masked/hidden """
-        return self.abudance_df[self.abundance_df['maske']==False]
+        return self.abudance_df[self.abundance_df['masked']==False]
        
     def groupAllSamples(self, all_levels=None):
         """ groups all samples on tax_level """
@@ -462,12 +485,13 @@ class Abundances():
         else:
             levels = all_levels
         grouped = self.abundance_df.groupby(levels, sort=False, as_index=False).sum()
-        #print(grouped.head())
+        grouped.index = grouped[self.tax_level] + '_'
+        grouped.index.name = None 
         if self.tax_level == self.tax_levels[0]:
             grouped['colour'] = list(self.abundance_df['colour'])
         else:
             grouped['colour'] = ['undefined']*len(grouped.index)
-        grouped.index = range(len(grouped.index))
+        grouped.index = grouped[self.tax_level] + '_'
         return grouped[grouped['masked'] == False]
        
     def groupAbsoluteSamples(self):
@@ -476,11 +500,17 @@ class Abundances():
         levels = self.tax_levels[self.tax_levels.index(self.tax_level):]
         if self.abundance_raw_df is not None:
             grouped = self.abundance_raw_df.groupby(levels, sort=False, as_index=False).sum()
-            grouped.index = grouped[self.tax_level]
-            #grouped.index = range(len(grouped.index))
-            #return grouped[grouped['masked'] == False]
+            grouped.index = grouped[self.tax_level] + '_'
+            grouped.index.name = None 
             return grouped[grouped[self.tax_level].isin(unmasked_tax)]
-            #return grouped
+        else:
+            return None
+
+    def groupClrSamples(self):
+        df = self.groupAbsoluteSamples()
+        if df is not None:
+            df2 = clr_transformed(df.astype('int', errors='ignore'))
+            return df2
         else:
             return None
        
@@ -684,7 +714,6 @@ class Abundances():
         """  """
         from pathlib import Path
         path = Path(__file__).parent
-        #print(str(path) + '/relative_counts.csv')
         if self.abundance_df is not None:
             self.abundance_df[self.sample_names].to_csv(str(path) + '/relative_counts.csv')
             #self.abundance_df[self.abundance_df['masked']==False].loc[:,self.sample_names].to_csv(str(path) + '/relative_counts.csv')
