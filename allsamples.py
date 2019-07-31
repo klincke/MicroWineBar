@@ -4,6 +4,7 @@ from tkinter.ttk import *
 import pandas as pd
 from random import randrange
 from tkinter.colorchooser import askcolor
+from .general_functions import *
 
 
 class AllSamples():
@@ -11,6 +12,8 @@ class AllSamples():
         self.root = root
         self.abundance_df_instance = abundance_df
         self.abundance_df = abundance_df.getDataframe()
+        self.abundance_df.index = self.abundance_df[all_tax_levels[0]] + '_'
+        self.abundance_df.index.name = None
         self.all_tax_levels = all_tax_levels
         self.samples = abundance_df.getSamplesList()
         self.changed_filter_all_samples = changed_filter_all_samples
@@ -50,13 +53,9 @@ class AllSamples():
         treeScroll.grid(row=1, column=5, sticky='nsew')
         self.tax_tree.configure(yscrollcommand=treeScroll.set)
 
-        #self.tax_tree.heading("#0", text='Id', anchor='w')
-        self.tax_tree.column("#0", anchor="w", width=0)
-        #self.tax_tree.heading('max_abundance', text='max_abundance')
-        self.tax_tree.heading('max_abundance',text='Max_abundance',command=lambda each='max_abundance': self.treeview_sort_column(self.tax_tree, each, True))
+        self.tax_tree.column("#0", anchor="w", width=0)        self.tax_tree.heading('max_abundance',text='Max_abundance',command=lambda each='max_abundance': self.treeview_sort_column(self.tax_tree, each, True))
         self.tax_tree.column('max_abundance', anchor='w', width=70)
         for col in self.all_tax_levels:
-            #self.tax_tree.heading(col, text=col)
             self.tax_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.tax_tree, each, False))
             self.tax_tree.column(col, anchor='w', width=125)
         self.tax_tree.heading('masked', text='Hide', command=lambda each='masked': self.treeview_sort_column(self.tax_tree, each, False))
@@ -73,6 +72,7 @@ class AllSamples():
                 self.item_ids_set.add(item)
         self.tax_tree.bind("<Button-2>", self.create_popup_menu)
     
+
     def treeview_sort_column(self, tv, col, reverse):
         """ sorts the table by coloumn """
         l = [(tv.set(k, col), k) for k in tv.get_children('')]
@@ -130,12 +130,12 @@ class AllSamples():
         
         self.number_of_species_label = Label(self.frame, text='number of species: '+str(len(self.item_ids_set)) + ' / ' + str(len(self.abundance_df.index)))
         self.number_of_species_label.grid(row=2, column=0)
-        m = self.abundance_df.max(numeric_only=True).max()
-        self.threshold = StringVar()
-        threshold_spinbox = Spinbox(self.frame, from_=0, to=m, increment=0.01, textvariable=self.threshold)
-        threshold_spinbox.grid(row=2, column=2)
-        self.threshold.set(0)
-        self.threshold.trace('w', self.filter_abundances)
+        #m = self.abundance_df.max(numeric_only=True).max()
+        #self.threshold = StringVar()
+        #threshold_spinbox = Spinbox(self.frame, from_=0, to=m, increment=0.01, textvariable=self.threshold)
+        #threshold_spinbox.grid(row=2, column=2)
+        #self.threshold.set(0)
+        #self.threshold.trace('w', self.filter_abundances)
             
         save_changes_button = Button(self.frame, text='save changes', command=self.save_changes)
         save_changes_button.grid(row=2, column=3)    
@@ -143,22 +143,22 @@ class AllSamples():
         reset_button.grid(row=2, column=4)
             
             
-    def filter_abundances(self, a,b,c):
-        """ filters the table for abundance """
-        t = float(self.threshold.get())
-        for item_id in self.item_ids_set.copy():
-            if float(self.tax_tree.item(item_id,'values')[0]) < t:
-                #self.tax_tree.delete(item_id)
-                self.tax_tree.set(item_id,'masked', 'True')
-                self.item_ids_set.remove(item_id)
-            else:
-                self.tax_tree.set(item_id,'masked', 'False')
-                self.item_ids_set.add(item_id)
-        self.number_of_species_label.config(text='number of species: '+str(len(self.item_ids_set)) + ' / ' + str(len(self.abundance_df.index)))
+    # def filter_abundances(self, a,b,c):
+    #     """ filters the table for abundance """
+    #     t = float(self.threshold.get())
+    #     for item_id in self.item_ids_set.copy():
+    #         if float(self.tax_tree.item(item_id,'values')[0]) < t:
+    #             #self.tax_tree.delete(item_id)
+    #             self.tax_tree.set(item_id,'masked', 'True')
+    #             self.item_ids_set.remove(item_id)
+    #         else:
+    #             self.tax_tree.set(item_id,'masked', 'False')
+    #             self.item_ids_set.add(item_id)
+    #     self.number_of_species_label.config(text='number of species: '+str(len(self.item_ids_set)) + ' / ' + str(len(self.abundance_df.index)))
         
     def save_changes(self):
         """ saves changes so that they can be used in the rest of the program """
-        indices = [self.tax_tree.item(item_id,'values')[1] for item_id in self.item_ids_set]
+        indices = [self.tax_tree.item(item_id,'values')[1]+'_' for item_id in self.item_ids_set]
         colors_dict = dict((self.tax_tree.item(key,'text'),value) for (key,value) in self.colors_dict.items())
         self.abundance_df_instance.renewMasking(indices, colors_dict)
         self.change_filter_all_samples(self.changed_filter_all_samples)
@@ -167,7 +167,6 @@ class AllSamples():
         """ resets table (all shown) """
         self.item_ids_set.clear()
         self.item_ids_hidden_set.clear()
-        self.threshold.set(0)
         self.abundance_df_instance.reset()
         self.abundance_df = self.abundance_df_instance.getDataframe()
         self.create_table()
@@ -204,4 +203,5 @@ class AllSamples():
             self.popup_menu.add_command(label='select colour', command=lambda event=event: self.select_colour(event))
             self.popup_menu.add_command(label='remove colour', command=lambda event=event: self.remove_colour(event))
             self.popup_menu.post(event.x_root, event.y_root)
+
         
