@@ -75,15 +75,10 @@ class PopUpIncludingMatplotlib():
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        print(median_labels)
-        #for group_num in [0, 1]:
-        #    ax.text(group_num+1, max(richness)*1.005, median_labels[group_num], horizontalalignment='center', size='medium')
-        
         #t-test (Wlech's-test does not assume equal variance)
         from scipy.stats import ttest_ind
         ttest_result = ttest_ind(richness[samples1].values, richness[samples2].values, equal_var=False)
-        #ax.text(1.5, min(richness)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='medium')
-        print('T_stat: '+str(round(ttest_result[0],2)), 'p_val: '+str('{0:.0e}'.format(ttest_result[1])))
+        ttest_res = ['T_stat: '+str(round(ttest_result[0],2)), 'p_val: '+str('{0:.0e}'.format(ttest_result[1]))]
 
         #fig.subplots_adjust(left=0.08, right=0.98, bottom=0.2, top=0.97, hspace=0.2, wspace=0.2)
         fig.set_tight_layout(True)
@@ -95,7 +90,7 @@ class PopUpIncludingMatplotlib():
 
         save_button = Button(self.frame, text="Save (high resolution)", command=lambda fig=fig, title='Richness', initialfile='richness_groups': self.save_high_resolution_figure(fig, title, initialfile))
         save_button.grid(row=1, column=0)
-
+        return (median_labels, ttest_res)
     
     def richness_all_samples(self, working_samples, samples_list, tax_level):
         self.create_window()
@@ -182,11 +177,6 @@ class PopUpIncludingMatplotlib():
         ax.set_xticklabels(['Shannon diversity'])
         #ax.set_ylabel('number of species')
         
-        ##add median text
-        #medians = [med.get_ydata()[0] for med in bp['medians']]
-        #median_labels = [str(np.round(med, 2)) for med in medians]
-        #ax.text(1, max(shannon0)*1.01, median_labels[0], horizontalalignment='center', size='medium')
-        
         ax = fig.add_subplot(212)
         for i,val in enumerate(shannon0):
             ax.scatter(shannon0.index[i],val,marker='.')
@@ -230,15 +220,10 @@ class PopUpIncludingMatplotlib():
         #add median text
         medians = [med.get_ydata()[0] for med in bp['medians']]
         median_labels = [str(np.round(med, 2)) for med in medians]
-        print(median_labels)
-        #for group_num in [0, 1]:
-        #    ax.text(group_num+1, max(shannon0)*1.005, median_labels[group_num], horizontalalignment='center', size='medium')
-        
+         
         from scipy.stats import ttest_ind
         ttest_result = ttest_ind(shannon0[samples1].values, shannon0[samples2].values, equal_var=False)
-        #ax.text(1.5, min(shannon0)*0.995, 'T_stat: '+str(round(ttest_result[0],2))+', p_val: '+str('{0:.0e}'.format(ttest_result[1])), horizontalalignment='center', size='medium')
-        print('T_stat: '+str(round(ttest_result[0],2)), 'p_val: '+str('{0:.0e}'.format(ttest_result[1])))
-
+        ttest_res = ['T_stat: '+str(round(ttest_result[0],2)), 'p_val: '+str('{0:.0e}'.format(ttest_result[1]))]
 
         #fig.subplots_adjust(left=0.1, right=0.98, bottom=0.2, top=0.97, hspace=0.2, wspace=0.2)
         fig.set_tight_layout(True)
@@ -250,6 +235,7 @@ class PopUpIncludingMatplotlib():
 
         save_button = Button(self.frame, text="Save (high resolution)", command=lambda fig=fig, title='Shannon diversity', initialfile='shannon_groups': self.save_high_resolution_figure(fig, title, initialfile))
         save_button.grid(row=1, column=0)
+        return (median_labels, ttest_res)
 
     
     def beta_diversity_heatmap(self, working_samples, samples_list, tax_level):
