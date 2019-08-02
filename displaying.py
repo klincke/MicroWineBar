@@ -61,7 +61,7 @@ class Displaying():
                                             fill=self.color, 
                                             tags=self.color)
         balloon.tagbind(canvas, self.item, str(self.name) + '\t' + '{0:.2f}'.format(round(self.abundance, 2)))
-        if not os_mac:  #windows
+        if not os_mac:  #linux
             canvas.tag_bind(self.item, '<Control-Button-3>', lambda event, new_bool=1: self.popup_menu.do_popup(event, new_bool))
             canvas.tag_bind(self.item, '<Button-3>', lambda event, new_bool=0: self.popup_menu.do_popup(event, new_bool))
         else:
