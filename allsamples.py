@@ -8,8 +8,9 @@ from .general_functions import *
 
 
 class AllSamples():
-    def __init__(self, root, abundance_df, all_tax_levels, changed_filter_all_samples):
+    def __init__(self, root, abundance_df, all_tax_levels, changed_filter_all_samples, os_mac):
         self.root = root
+        self.os_mac = os_mac
         self.abundance_df_instance = abundance_df
         self.abundance_df = abundance_df.getDataframe()
         self.abundance_df.index = self.abundance_df[all_tax_levels[0]] + '_'
@@ -53,7 +54,8 @@ class AllSamples():
         treeScroll.grid(row=1, column=5, sticky='nsew')
         self.tax_tree.configure(yscrollcommand=treeScroll.set)
 
-        self.tax_tree.column("#0", anchor="w", width=0)        self.tax_tree.heading('max_abundance',text='Max_abundance',command=lambda each='max_abundance': self.treeview_sort_column(self.tax_tree, each, True))
+        self.tax_tree.column("#0", anchor="w", width=0)        
+        self.tax_tree.heading('max_abundance',text='Max_abundance',command=lambda each='max_abundance': self.treeview_sort_column(self.tax_tree, each, True))
         self.tax_tree.column('max_abundance', anchor='w', width=70)
         for col in self.all_tax_levels:
             self.tax_tree.heading(col,text=col.capitalize(),command=lambda each=col: self.treeview_sort_column(self.tax_tree, each, False))
@@ -70,7 +72,10 @@ class AllSamples():
                 self.item_ids_hidden_set.add(item)
             else: 
                 self.item_ids_set.add(item)
-        self.tax_tree.bind("<Button-2>", self.create_popup_menu)
+        if not self.os_mac:
+            self.tax_tree.bind("<Button-3>", self.create_popup_menu)
+        else:
+            self.tax_tree.bind("<Button-2>", self.create_popup_menu)
     
 
     def treeview_sort_column(self, tv, col, reverse):
