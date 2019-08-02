@@ -21,8 +21,9 @@ from .popupwindow_matplotlib import PopUpIncludingMatplotlib
 from random import shuffle
 
 class PopUpGraph():
-    def __init__(self, root, all_tax_levels, tax_level2, abundance_df):
+    def __init__(self, root, all_tax_levels, tax_level2, abundance_df, os_mac):
         self.root = root
+        self.os_mac = os_mac
         self.all_tax_levels = all_tax_levels
         self.tax_level2 = tax_level2
         self.abundance_df = abundance_df
@@ -318,7 +319,10 @@ class PopUpGraph():
         self.sort_lbox.grid(row=4, column=5, columnspan=6)
         yscroll.config(command=self.sort_lbox.yview)
         self.sort_lbox.bind("<<ListboxSelect>>", lambda event, popup_canvas=popup_canvas : self.sort_bars(popup_canvas))
-        self.sort_lbox.bind("<Button-2>", lambda event, canvas=popup_canvas : self.highlight_bars_black(event, canvas))
+        if not self.os_mac:
+            self.sort_lbox.bind("<Button-3>", lambda event, canvas=popup_canvas : self.highlight_bars_black(event, canvas))
+        else:
+            self.sort_lbox.bind("<Button-2>", lambda event, canvas=popup_canvas : self.highlight_bars_black(event, canvas))
         
     def select_samples_for_stacked_bargraph(self, canvas):   
         """ selects samples for the stacked bar graph """
@@ -428,7 +432,7 @@ class PopUpGraph():
                 tag = self.working_samples.loc[idx, self.current_tax_level]
                 if idx in indexes:
                     highlight_height += self.working_samples.loc[idx, sample]*HEIGHT/sample_height
-                b = BarBox(self.root, samples_list, self.abundance_df, self.all_tax_levels)
+                b = BarBox(self.root, samples_list, self.abundance_df, self.all_tax_levels, self.os_mac)
                 item = b.drawBar(canvas=popup_canvas, coords=coords, color=col, name=tag, sample=sample)
                 item_height = self.working_samples.loc[idx, sample]*HEIGHT/sample_height
                 self.stacked_bar_dict[sample][idx] = (item, item_height)
@@ -961,7 +965,8 @@ class PopUpGraph():
         self.inner_frame.destroy()
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=6, column=0, columnspan=6)
-        
+        canvas = create_canvas(frame=self.inner_frame, height=100, width=800, xscroll=False, yscroll=False, colspan=2, take_focus=True)
+
         df = self.abundance_df.groupAllSamples(self.all_tax_levels[self.all_tax_levels.index(self.tax_level2):])
         df = df[df.columns[:-1]]
         df = df[df['masked']==False]
@@ -985,14 +990,18 @@ class PopUpGraph():
             popup_matplotlib = PopUpIncludingMatplotlib(self.root, self.abundance_df, self.all_tax_levels)
             if self.abundance_df is not None:
                 working_samples = self.abundance_df.groupAllSamples()
-            popup_matplotlib.richness_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, richness, self.samples1_label.get(), self.samples2_label.get())
+                (median_labels, ttest_res) = popup_matplotlib.richness_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, richness, self.samples1_label.get(), self.samples2_label.get())
+                canvas.create_text(0, 20, text=self.samples1_label.get()+' median:\t'+median_labels[0], anchor=NW)
+                canvas.create_text(0, 40, text=self.samples2_label.get()+' median:\t'+median_labels[1], anchor=NW)
+                canvas.create_text(0, 70, text=ttest_res[0]+'\t'+ttest_res[1], anchor=NW)
 
     def shannon_diversity_groups(self):
         """ creates a boxplot of the Shannon diversity index for each group of samples """
         self.inner_frame.destroy()
         self.inner_frame = Frame(self.frame)
         self.inner_frame.grid(row=6, column=0, columnspan=6)
-        
+        canvas = create_canvas(frame=self.inner_frame, height=100, width=800, xscroll=False, yscroll=False, colspan=2, take_focus=True)
+
         df = self.abundance_df.groupAllSamples(self.all_tax_levels[self.all_tax_levels.index(self.tax_level2):])
         df = df[df.columns[:-1]]
         df = df[df['masked']==False]
@@ -1018,7 +1027,10 @@ class PopUpGraph():
             if self.abundance_df is not None:
                 working_samples = self.abundance_df.groupAllSamples()
                 #working_samples = self.abundance_df.groupAbsoluteSamples()
-            popup_matplotlib.shannon_diversity_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, shannon, self.samples1_label.get(), self.samples2_label.get())
+                (median_labels, ttest_res) = popup_matplotlib.shannon_diversity_groups(working_samples, self.samples_list, self.tax_level2, samples_1, samples_2, shannon, self.samples1_label.get(), self.samples2_label.get())
+                canvas.create_text(0, 20, text=self.samples1_label.get()+' median:\t'+median_labels[0], anchor=NW)
+                canvas.create_text(0, 40, text=self.samples2_label.get()+' median:\t'+median_labels[1], anchor=NW)
+                canvas.create_text(0, 70, text=ttest_res[0]+'\t'+ttest_res[1], anchor=NW)
 
     def correlation_groups(self):
         """ correaltion """
@@ -1717,8 +1729,9 @@ class BarBox():
                 root,
                 samples,
                 abundance_df, 
-                all_tax_levels):
+                all_tax_levels, os_mac):
         self.root = root
+        self.os_mac = os.mac
         self.balloon = Pmw.Balloon(root)
         self.popupinfo = PopUpInfo(self.root, [], all_tax_levels, '', samples, abundance_df)
         
@@ -1726,8 +1739,10 @@ class BarBox():
         """ draws one bar in a bar graph """          
         item = canvas.create_rectangle(coords, outline=color, fill=color, tags=(name.replace(' ','_'), sample))
         self.balloon.tagbind(canvas, item, name)
-        
-        canvas.tag_bind(item, '<Button-2>', lambda event, new_bool=1, name=name : self.popupinfo.do_popup(event, new_bool, name))
+        if not self.os_mac:
+            canvas.tag_bind(item, '<Button-3>', lambda event, new_bool=1, name=name : self.popupinfo.do_popup(event, new_bool, name))
+        else:
+            canvas.tag_bind(item, '<Button-2>', lambda event, new_bool=1, name=name : self.popupinfo.do_popup(event, new_bool, name))
         return item
         
         
