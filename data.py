@@ -21,8 +21,7 @@ class Abundances():
         self.abundance_df['masked'] = [False]*len(self.abundance_df.index)
         self.abundance_df['colour'] = ['undefined']*len(self.abundance_df.index)
 
-    #add MGmapper sample (with raw counts)
-    def addMGmapperSample(self, sample_name, filename):
+    def addSample(self, sample_name, filename):
         """ adds a sample (as one column) to the dataframes for relative and raw counts"""
         tax_levels = None
         if len(self.abundance_df.columns) == 0:
@@ -72,200 +71,94 @@ class Abundances():
             self.abundance_raw_df.loc[i,self.sample_names] = self.abundance_raw_df.loc[i].sum(numeric_only=True)
             self.abundance_raw_df.drop(i, inplace=True)
         return self.tax_levels
-
-    #new version, to take also krona input    
-    def addSample(self, sample_name, filename):
-        """ adds a sample (as one column) to the dataframe """
+    
+    def addRelSample(self, sample_name, filename):
+        """ adds a sample (as one column) to the dataframes for relative counts """
         tax_levels = None
-        #self.header_present = False
         if len(self.abundance_df.columns) == 0:
-            self.abundance_df = pd.read_csv(filename, header=None, sep='\t')#, index_col=0) #krona (no header, no index)
-            #print(self.abundance_df.columns)
-            #cols = self.abundance_df.columns
-            #self.abundance_df = self.abundance_df[cols[0]+cols[1::-1]]
-            #print(cols)
-            #print(self.abundance_df.columns)
-            try:    #check if header is in file
-                int(self.abundance_df.values[0,0])
-            except ValueError:
-                self.header_present = True
-                #print self.abundance_df.columns
-                self.abundance_df.columns = self.abundance_df.iloc[0]
-                self.abundance_df = self.abundance_df[1:]
-            #print(self.abundance_df.columns)
+            self.abundance_df = pd.read_csv(filename, header=0, sep='\t') #krona (no header, no index)
             cols = list(self.abundance_df.columns)
-            self.abundance_df = self.abundance_df[[cols[0]] + cols[:0:-1]]
+            self.abundance_df = self.abundance_df[[cols[0]] + cols[:1:-1]]
             self.tax_levels = self.abundance_df.columns.tolist()[1:]
-            #print('cols:')
-            #print(cols)
-            #print(self.abundance_df.columns)
-            self.abundance_df = self.abundance_df[[self.abundance_df.columns.tolist()[0]] + self.tax_levels]
-            if not self.header_present: 
-                self.abundance_df = self.abundance_df.loc[:,[0] + self.tax_levels[::-1]]
-                self.abundance_df.rename(columns=dict(zip(self.abundance_df.columns[1:], self.tax_levels)),inplace=True)
+            #self.abundance_df = self.abundance_df[self.abundance_df.columns[0] + self.tax_levels]
             self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
-            #print(self.tax_levels[0])
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-            #self.abundance_df.reindex(self.tax_levels[0])
-            #print(self.abundance_df.index)
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None 
+            #self.abundance_df = self.abundance_df.loc[:,[self.abundance_df.columns[0]] + self.tax_levels]
         else:
-            #print(self.header_present)
-            sample_df = pd.read_csv(filename, header=None, sep='\t')#, index_col=0)
-            if self.header_present:
-                sample_df.columns = sample_df.iloc[0]
-                sample_df = sample_df[1:]
-            else:
-                #sample_df = sample_df.loc[:,[0] + sample_df.columns.tolist()[1:][::-1]]
-                sample_df = sample_df.loc[:,[0] + self.tax_levels[::-1]]
-                #sample_df.rename(columns=dict(zip(sample_df.columns[1:], sample_df.columns.tolist()[1:])),inplace=True)
-            #sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)
-                sample_df.rename(columns=dict(zip(sample_df.columns[1:], self.tax_levels)),inplace=True)
-            #print(sample_df.head(2))
+            sample_df = pd.read_csv(filename, header=0, sep='\t')
             sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)  
-            sample_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-            #sample_df.reindex(self.tax_levels[0])
+            sample_df.index = sample_df[self.tax_levels[0]]+'_'
+            sample_df.index.name = None 
             self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=self.tax_levels)
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)   
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None
             self.abundance_df.fillna(value=0, inplace=True) 
         self.abundance_df[sample_name] = self.abundance_df[sample_name].astype(float)
         
-        
         self.sample_names.append(sample_name.strip())
         self.abundance_df = self.abundance_df[self.sample_names + self.tax_levels]
-        #for c in self.abundance_df.columns:
-        #    print(c)
-        #    print(self.abundance_df[c].dtype)
-        #print(len(self.abundance_df.index))
-        #print(len(set(list(self.abundance_df.index))))
         myindex = list(self.abundance_df.index)
         newlist =  sorted(set([i for i in myindex if myindex.count(i)>1]))
         #problems with the ncbi taxonomy (typos?)
-        for i in newlist:
-            self.abundance_df.loc[i,self.sample_names] = self.abundance_df.loc[i].sum(numeric_only=True)
-            self.abundance_df.drop(i, inplace=True)
+        # for i in newlist:
+        #     self.abundance_df.loc[i,self.sample_names] = self.abundance_df.loc[i].sum(numeric_only=True)
+        #     self.abundance_df.drop(i, inplace=True)
+        self.abundance_raw_df = None
         return self.tax_levels
+
     
-    def addMetaPhlanSample(self, sample_name, filename):
-        #tax_levels = None
-        #self.header_present = False
-        taxonomy_keys = ['s', 'g', 'f', 'o', 'c', 'p', 'k']
+    
+    def addAbsSample(self, sample_name, filename):
+        """ adds a sample (as one column) to the dataframes for absolute and relative (calculated as percent) counts """
+        tax_levels = None
         if len(self.abundance_df.columns) == 0:
-            self.abundance_df = pd.DataFrame()
-            header = False
-            header_list = None
-            with open(filename) as infile:
-                for line in infile:
-                    if line[0] != '#':
-                        #for item in ['k__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__']:
-                        if '|s__' in line:
-                            if 'd__' in line:
-                                line = line.replace('d__', 'k__')
-                            #print(line)
-                        #if '|s__' in line and 'g__' in line and 'f__' in line and 'o__' in line and 'c__' in line and 'p__' in line and 'k__' in line:
-                            taxonomy, abundance = line.strip().split('\t')
-                            taxonomy_series = pd.Series(np.array(['-']*7), index=taxonomy_keys)
-                            #print(taxonomy)
-                            for pair in taxonomy.split('|'):
-                                key, value = pair.split('__')
-                                
-                                try:
-                                    taxonomy_series[key] = value
-                                except KeyError:
-                                    pass
-                            taxonomy_list = list(taxonomy_series)
-                            if not header:
-                                header_dict = {'s':'species', 'g':'genus', 'f':'family', 'o':'order', 'c':'class', 'p':'phylum', 'k':'kingdom'}
-                                header_list = [header_dict[item.split('__')[0]] for item in taxonomy.split('|')][::-1]
-                                header_list = ['species', 'genus', 'family', 'order', 'class', 'phylum', 'kingdom']
-                                header = True
-                                self.abundance_df = pd.DataFrame(columns = [sample_name] + header_list)
-                            #print(taxonomy_list)
-                            self.abundance_df.loc[taxonomy_list[0]] = [float(abundance)] + taxonomy_list
-            self.tax_levels = header_list
+            self.abundance_df = pd.read_csv(filename, header=0, sep='\t') #krona (no header, no index)
+            cols = list(self.abundance_df.columns)
+            total_count = self.abundance_df[cols[0]].sum()
+            self.abundance_df = self.abundance_df[[cols[0]] + cols[:1:-1]]
+            self.tax_levels = self.abundance_df.columns.tolist()[1:]
+            self.abundance_df = self.abundance_df[[self.abundance_df.columns[0]] + self.tax_levels]
+            print(abundance_df.head)
+            print(total_count)
+            self.abundance_df[cols[0]] = self.abundance_df[cols[0]].divide(total_count)
+            self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None 
+
+            self.abundance_raw_df = self.abundance_df.loc[:,[self.abundance_df.columns[0]] + self.tax_levels]
+            self.abundance_raw_df.rename(columns={self.abundance_raw_df.columns[0]:sample_name}, inplace=True)
+            self.abundance_raw_df.index = self.abundance_raw_df[self.tax_levels[0]]+'_'
+            self.abundance_raw_df.index.name = None 
+            self.abundance_df = self.abundance_df.loc[:,[self.abundance_df.columns[0]] + self.tax_levels]
         else:
-            sample_df = pd.DataFrame(columns=[sample_name] + self.tax_levels)
-            with open(filename) as infile:
-                for line in infile:
-                    if line[0] != '#':
-                        if '|s__' in line:
-                            if 'd__' in line:
-                                line = line.replace('d__', 'k__')
-                        #if '|s__' in line and 'g__' in line and 'f__' in line and 'o__' in line and 'c__' in line and 'p__' in line and 'k__' in line:
-                            taxonomy, abundance = line.strip().split('\t')
-                            taxonomy_series = pd.Series(np.array(['-']*7), index=taxonomy_keys)
-                            for pair in taxonomy.split('|'):
-                                key, value = pair.split('__')
-                                try:
-                                    taxonomy_series[key] = value
-                                except KeyError:
-                                    pass
-                            taxonomy_list = list(taxonomy_series)
-                            sample_df.loc[taxonomy_list[0]] = [float(abundance)] + taxonomy_list
+            sample_df = pd.read_csv(filename, header=0, sep='\t')
+            total_count = sample_df[sample_df.columns[0]].sum()
+            sample_raw_df = sample_df.loc[:,[sample_df.columns[0]]+self.tax_levels]
+            sample_raw_df.rename(columns={sample_raw_df.columns[0]:sample_name}, inplace=True)  
+            sample_raw_df.index = sample_raw_df[self.tax_levels[0]]+'_'
+            sample_raw_df.index.name = None
+            sample_df[sample_df.columns[0]] = sample_df[sample_df.columns[0]].divide(total_count)
+            sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)  
+            sample_df.index = sample_df[self.tax_levels[0]]+'_'
+            sample_df.index.name = None 
             self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=self.tax_levels)
-            self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)   
+            self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
+            self.abundance_df.index.name = None
             self.abundance_df.fillna(value=0, inplace=True) 
+            self.abundance_raw_df = pd.merge(self.abundance_raw_df, sample_raw_df, how='outer', on=self.tax_levels)
+            self.abundance_raw_df.index = self.abundance_raw_df[self.tax_levels[0]]+'_'
+            self.abundance_raw_df.index.name = None  
+            self.abundance_raw_df.fillna(value=0, inplace=True)
         self.abundance_df[sample_name] = self.abundance_df[sample_name].astype(float)
-    
+        self.abundance_raw_df[sample_name] = self.abundance_raw_df[sample_name].astype(float)
+        
         self.sample_names.append(sample_name.strip())
         self.abundance_df = self.abundance_df[self.sample_names + self.tax_levels]
-    
-        #print(self.abundance_df.head(2))
-        #print(self.abundance_df)
+        self.abundance_raw_df = self.abundance_raw_df[self.sample_names + self.tax_levels]
+        myindex = list(self.abundance_df.index)
+        newlist =  sorted(set([i for i in myindex if myindex.count(i)>1]))
         return self.tax_levels
-    
-    
-    # #takes krona input (without header)
-    # def addSample(self, sample_name, filename):
-    #     """ adds a sample (as one column) to the dataframe """
-    #     tax_levels = None
-    #     #self.header_present = False
-    #     if len(self.abundance_df.columns) == 0:
-    #         self.abundance_df = pd.read_table(filename, header=None)#, index_col=0) #krona (no header, no index)
-    #         try:    #check if header is in file
-    #             int(self.abundance_df.values[0,0])
-    #         except ValueError:
-    #             self.header_present = True
-    #             self.abundance_df.columns = self.abundance_df.iloc[0]
-    #             self.abundance_df = self.abundance_df[1:]
-    #         self.tax_levels = self.abundance_df.columns.tolist()[1:]
-    #         self.abundance_df = self.abundance_df[[self.abundance_df.columns.tolist()[0]] + self.tax_levels]
-    #         if not self.header_present:
-    #             self.abundance_df = self.abundance_df.loc[:,[0] + self.tax_levels[::-1]]
-    #             self.abundance_df.rename(columns=dict(zip(self.abundance_df.columns[1:], self.tax_levels)),inplace=True)
-    #         self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
-    #         #print(self.tax_levels[0])
-    #         self.abundance_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-    #         #self.abundance_df.reindex(self.tax_levels[0])
-    #         #print(self.abundance_df.index)
-    #     else:
-    #         #print(self.header_present)
-    #         sample_df = pd.read_table(filename, header=None)#, index_col=0)
-    #         if self.header_present:
-    #             sample_df.columns = sample_df.iloc[0]
-    #             sample_df = sample_df[1:]
-    #         else:
-    #             #sample_df = sample_df.loc[:,[0] + sample_df.columns.tolist()[1:][::-1]]
-    #             sample_df = sample_df.loc[:,[0] + self.tax_levels[::-1]]
-    #             #sample_df.rename(columns=dict(zip(sample_df.columns[1:], sample_df.columns.tolist()[1:])),inplace=True)
-    #         #sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)
-    #             sample_df.rename(columns=dict(zip(sample_df.columns[1:], self.tax_levels)),inplace=True)
-    #         #print sample_df.head(2)
-    #         sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)
-    #         sample_df.set_index(self.tax_levels[0], drop=False, inplace=True)
-    #         #sample_df.reindex(self.tax_levels[0])
-    #         #print('addSample')
-    #         #print(sample_df.head(2))
-    #         #print(sample_df.index)
-    #         self.abundance_df = pd.merge(self.abundance_df, sample_df, how='outer', on=self.tax_levels)
-    #     self.abundance_df[sample_name] = self.abundance_df[sample_name].astype(float)
-    #     #for c in self.abundance_df.columns:
-    #     #    print(self.abundance_df[c].dtype)
-    #     self.abundance_df.fillna(value=0, inplace=True)
-    #     self.sample_names.append(sample_name.strip())
-    #     #print(self.abundance_df.head(2))
-    #     #print(self.abundance_df)
-    #     return self.tax_levels
-            
 
     def deselectOfSample(self, names, current_tax_level):
         """ deselects/removes species given the name of the species """
@@ -507,10 +400,13 @@ class Abundances():
             return None
 
     def groupClrSamples(self):
-        df = self.groupAbsoluteSamples()
-        if df is not None:
-            df2 = clr_transformed(df.astype('int', errors='ignore'))
-            return df2
+        if self.abundance_raw_df is not None:
+            df = self.groupAbsoluteSamples()
+            if df is not None:
+                df2 = clr_transformed(df.astype('int', errors='ignore'))
+                return df2
+            else:
+                return None
         else:
             return None
        
