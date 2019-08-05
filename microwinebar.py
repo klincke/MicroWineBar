@@ -222,7 +222,7 @@ class Interaction(Frame):
         self.update()
     
     def enableMenu(self):
-        """  """
+        """ enables many menu items when samples are loaded """
         self.menu.entryconfig("Highlight", state=NORMAL)
         self.menu.entryconfig("Overview", state=NORMAL)
         self.menu.entryconfig("Sort by", state=NORMAL)
@@ -253,14 +253,16 @@ class Interaction(Frame):
         self.preset_ind.set(0)
         self.menu.add_cascade(label="File", menu=self.filemenu)
         if not self.os:
-            self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
-            self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
+            self.filemenu.add_command(label="Open file(s) with relative & absolute counts", command=self.OpenSample)
+            self.filemenu.add_command(label='Open file(s) with only relative counts', command=self.OpenRelSample)
+            self.filemenu.add_command(label='Open file(s) with only absolute counts', command=self.OpenAbsSample)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Ctrl+m")
             self.filemenu.add_separator()
             self.filemenu.add_command(label='Add preset', command=self.addPreset, accelerator="Ctrl+p")
         else:
-            self.filemenu.add_command(label="Open file(s) with normalised & raw counts", command=self.OpenMGmapper)
-            self.filemenu.add_command(label='Open MetaPhlAn file(s)', command=self.OpenMetaPhlanFiles)
+            self.filemenu.add_command(label="Open file(s) with relative & absolute counts", command=self.OpenSample)
+            self.filemenu.add_command(label='Open file(s) with only relative counts', command=self.OpenRelSample)
+            self.filemenu.add_command(label='Open file(s) with only absolute counts', command=self.OpenAbsSample)
             self.filemenu.add_command(label="Open metadata", command=self.OpenMetadata, accelerator="Cmd+m")
             self.filemenu.add_separator()
             self.filemenu.add_command(label='Add preset', command=self.addPreset, accelerator="Cmd+p")
@@ -511,7 +513,7 @@ class Interaction(Frame):
     
     def overview_bar(self):
         """ opens one popup window with stacked bar graph for all samples """
-        popup = PopUpGraph(self.parent, self.all_tax_levels, self.get_current_tax_level(), self.abundance_df)
+        popup = PopUpGraph(self.parent, self.all_tax_levels, self.get_current_tax_level(), self.abundance_df, self.os)
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAllSamples()
             popup.create_overview_scaled_bar(working_samples, self.sample_names, self.get_current_tax_level())#'species')
@@ -519,7 +521,7 @@ class Interaction(Frame):
     def overview_line(self):
         """ opens one popup window with a line graph for all samples, 
         each organism (e.g. species) is represented by one line """
-        popup = PopUpGraph(self.parent, self.all_tax_levels, self.get_current_tax_level(), self.abundance_df)
+        popup = PopUpGraph(self.parent, self.all_tax_levels, self.get_current_tax_level(), self.abundance_df, self.os)
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAllSamples()
             popup.create_overview_line(working_samples, self.sample_names, self.get_current_tax_level())
@@ -539,14 +541,14 @@ class Interaction(Frame):
             popup_matplotlib.shannon_diversity_all_samples(working_samples, self.sample_names, self.get_current_tax_level())
     
     def beta_diversity_heatmap(self):
-        """ create and save as png Braycurtis beta diversity heatmap of all samples """
+        """ create and save Braycurtis beta diversity heatmap of all samples """
         popup_matplotlib = PopUpIncludingMatplotlib(self.parent, self.abundance_df, self.all_tax_levels)
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAllSamples()
         popup_matplotlib.beta_diversity_heatmap(working_samples, self.sample_names, self.get_current_tax_level())
     
     def cluster_heatmap(self):
-        """ """
+        """ create and save cluster heatmap of abundances of all samples """
         popup_matplotlib = PopUpIncludingMatplotlib(self.parent, self.abundance_df, self.all_tax_levels)
         if self.abundance_df is not None:
             working_samples = self.abundance_df.groupAbsoluteSamples()
@@ -557,7 +559,7 @@ class Interaction(Frame):
         """ compare two presence/absence of species in two groups of samples """
         popup = PopUpGraph(self.parent, 
                             self.all_tax_levels, self.get_current_tax_level(), 
-                            self.abundance_df)
+                            self.abundance_df, self.os)
         popup.compare_groups_of_samples(self.abundance_df, 
                                         self.sample_names, self.get_current_tax_level())
     
@@ -574,7 +576,7 @@ class Interaction(Frame):
         """ correlation """
         popup = PopUpGraph(self.parent, 
                             self.all_tax_levels, self.get_current_tax_level(), 
-                            self.abundance_df)
+                            self.abundance_df, self.os)
         popup.corr(self.sample_names, 
                     self.abundance_df.getValuesForColumn(self.all_tax_levels[-1]), 
                     self.abundance_df)
@@ -583,12 +585,12 @@ class Interaction(Frame):
         """ scatter plot """
         popup = PopUpGraph(self.parent, 
                             self.all_tax_levels, self.get_current_tax_level(), 
-                            self.abundance_df)
+                            self.abundance_df, self.os)
         popup.scatter_plot_window(self.sample_names)
     
     def filter_all_samples(self):
         """ filter all samples (displayed)"""
-        allsamples = AllSamples(self.parent, self.abundance_df, self.all_tax_levels, self.changed_filter_all_samples)
+        allsamples = AllSamples(self.parent, self.abundance_df, self.all_tax_levels, self.changed_filter_all_samples, self.os)
         self.ChooseSample()
     
     def ShowAbout(self):
@@ -665,7 +667,7 @@ class Interaction(Frame):
                                             value=ind, 
                                             command=self.update)
     
-    def OpenMGmapper(self, *args):
+    def OpenSample(self, *args):
         names = askopenfilenames()
         new_files_loaded_bool = True
         if len(names) == 0:
@@ -677,7 +679,7 @@ class Interaction(Frame):
             result = tmb.askretrycancel(title="Error", 
                             message="cannot load more than 150 samples", icon='error')
             if result:
-                self.OpenMGmapper()
+                self.OpenSample()
             else:
                 tmb.showinfo(title="no action", 
                             message="no new samples were loaded")
@@ -692,7 +694,7 @@ class Interaction(Frame):
             for filename in list(names):
                 samplename = '.'.join(filename.split('/')[-1].split('.')[:-1])
                 self.sample_names.append(samplename)
-                self.all_tax_levels = self.abundance_df.addMGmapperSample(samplename, filename)
+                self.all_tax_levels = self.abundance_df.addSample(samplename, filename)
             self.sort_list = ['abundance'] + [level + ', abundance' for level in self.all_tax_levels[1:]] + self.all_tax_levels
             self.abundance_df.addMasking()
             self.AddSamplesToMenu()
@@ -703,8 +705,8 @@ class Interaction(Frame):
                                             value=ind, 
                                             command=self.update)
                                             
-    def OpenMetaPhlanFiles(self, *args):
-        """ opens one or several MetaPhlan files """
+    def OpenRelSample(self, *args):
+        """ opens one or several files with only realtive counts """
         names = askopenfilenames()
         new_files_loaded_bool = True
         if len(names) == 0:
@@ -716,7 +718,7 @@ class Interaction(Frame):
             result = tmb.askretrycancel(title="Error", 
                             message="cannot load more than 150 samples", icon='error')
             if result:
-                self.OpenFiles()
+                self.OpenRelSample()
             else:
                 tmb.showinfo(title="no action", 
                             message="no new samples were loaded")
@@ -731,7 +733,7 @@ class Interaction(Frame):
             for filename in list(names):
                 samplename = '.'.join(filename.split('/')[-1].split('.')[:-1])
                 self.sample_names.append(samplename)
-                self.all_tax_levels = self.abundance_df.addMetaPhlanSample(samplename, filename)
+                self.all_tax_levels = self.abundance_df.addRelSample(samplename, filename)
             self.sort_list = ['abundance'] + [level + ', abundance' for level in self.all_tax_levels[1:]] + self.all_tax_levels
             self.abundance_df.addMasking()
             self.AddSamplesToMenu()
@@ -742,6 +744,45 @@ class Interaction(Frame):
                                             value=ind, 
                                             command=self.update)
     
+    def OpenAbsSample(self, *args):
+        """ opens one or several files with only absolute counts """
+        names = askopenfilenames()
+        new_files_loaded_bool = True
+        if len(names) == 0:
+            tmb.showinfo(title="no action", 
+                        message="no new samples were loaded")
+            new_files_loaded_bool = False
+            return
+        elif len(names) > 150:
+            result = tmb.askretrycancel(title="Error", 
+                            message="cannot load more than 150 samples", icon='error')
+            if result:
+                self.OpenRelSample()
+            else:
+                tmb.showinfo(title="no action", 
+                            message="no new samples were loaded")
+                new_files_loaded_bool = False
+                return
+                
+        if new_files_loaded_bool:
+            self.enableMenu()
+            self.sortmenu.delete(0, 'end')
+            self.sample_names = []
+            self.abundance_df = Abundances()
+            for filename in list(names):
+                samplename = '.'.join(filename.split('/')[-1].split('.')[:-1])
+                self.sample_names.append(samplename)
+                self.all_tax_levels = self.abundance_df.addAbsSample(samplename, filename)
+            self.sort_list = ['abundance'] + [level + ', abundance' for level in self.all_tax_levels[1:]] + self.all_tax_levels
+            self.abundance_df.addMasking()
+            self.AddSamplesToMenu()
+            self.ChooseSample()
+            for ind in range(len(self.sort_list)):
+                self.sortmenu.add_radiobutton(label=self.sort_list[ind], 
+                                            variable=self.sort_ind, 
+                                            value=ind, 
+                                            command=self.update)
+
     def OpenMetadata(self):
         """ opens metadata belonging to the samples """
         name = askopenfilename()
