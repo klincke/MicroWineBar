@@ -75,7 +75,7 @@ Scripts for preparing input are provided:
  	* data generated with Bracken
 
 * If one has data with **only relative counts**, one should choose in the **file**-menu **Open file(s) with only relative counts**.
- * data generated with MetaPhlAn 
+ 	* data generated with MetaPhlAn 
 		Note: the realtive abundance analysis ANCOM needs absolute counts to work.
 * Additionally, there is the option to import data with **only absolute counts** which one can find in the **file**-menu **Open file(s) with only absolute counts**.
 
