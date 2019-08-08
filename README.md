@@ -61,11 +61,11 @@ MicroWineBar was designed for species abundance tables from shotgun metagenomics
 
 #### Prepare Input
 Scripts for preparing input are provided:
-* build_table_from_bracken.py   
+* bracken2microwinebar.py   
   Takes [Bracken](https://ccb.jhu.edu/software/bracken/index.shtml) output and adds NCBI taxonomy for all levels. To run it one also needs to install the Environment for Tree Exploration by typing `pip install ete3`
-* build_table_from_mgmapper_positive.py   
+* mgmapper2microwinebar.py   
   Takes [MGmapper](https://bitbucket.org/genomicepidemiology/mgmapper/src/master/) output and combines the output from several databases into one table
-*
+* metaphlan2microwinebar.py
   Takes [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) output and transforms it into readable format for MicroWineBar
 
 
@@ -83,7 +83,7 @@ Scripts for preparing input are provided:
 
 ## Example
 
-In the directory ExampleData one can find the first samples of the wine dataset from fermentations of Bobal grapes. These files were created with MGmapper and then running the script build_table_from_mgmapper_positive.py.
+In the directory ExampleData one can find the first samples of the wine dataset from fermentations of Bobal grapes. These files were created with MGmapper and then running the script mgmapper2microwinebar.py .
 To analyse these files one has to start MicroWineBar and in the **File**-menu choose **Open file(s) with relative & absolute counts** which opens a file dialog to open the files.
 Then one should filter the non-microorganisms by clicking on the **Overview**-menu and then choose **filter**. This opens a table with all species present in the samples. To sort the rows (species) by one column one has to click on the header, e.g. click in Phylum to sort by phylum name. To hide all species belonging to the phylum *Streptophyta* one has to right-click in the column Phylum in a row where hide is False. Then a popup menu will appear where one has to click on **hide/show**. If in the row hide is False all *Streptohyta* will be displayed, if one right clicks on Streptophyta and in the popup menu chooses **hide/show**.
 
