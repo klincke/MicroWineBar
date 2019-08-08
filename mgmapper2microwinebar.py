@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#merges MGmapper positve files into one table which can be read by microwinebar
 #Franziska Klincke
-#usage: python build_table_from_mgmapper_positive.py SAMPLE --suffix .tab
 
 import os, sys
 import glob
@@ -43,9 +43,12 @@ for filename in glob.glob(os.path.join(path, sample + '*', 'stat/positive.specie
         sample_df.drop([idx, idx], inplace=True)
         sample_df = sample_df.append(newrow)
         num_of_positive_files += 1
+        
+sample_df.rename(columns={'R_Abundance (%)':'rel_abundance', 'Reads':'abs_abundance'}, inplace=True)
+
 try:
     sample_df = sample_df[columns_to_use[:-1]]
-    sample_df = sample_df[sample_df['R_Abundance (%)'] >= 0.001]
+    sample_df = sample_df[sample_df['rel_abundance'] >= 0.001]
     sample_df.to_csv(sample + suffix, sep='\t', header=True, index=False)
 except KeyError:
     pass

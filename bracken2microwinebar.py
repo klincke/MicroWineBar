@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#Franziska Klincke
 #converts Bracken output into format which can be read by microwinebar
 #gets the NCBI taxonomy
-#usage: python build_table_from_bracken.py --input_file INPUT_FILE --suffix .tab
-
-
 #Franziska Klincke
+
+
 import os, sys
 import argparse
 import pandas as pd
 from ete3 import NCBITaxa
 
-parser = argparse.ArgumentParser(description="helper script to prepare Bracken output for MicroWineBar,\neither INPUT_FILE or INPUT_LIST needs to bes specified")
+parser = argparse.ArgumentParser(description="helper script to prepare Bracken output for MicroWineBar,\neither INPUT_FILE or INPUT_LIST needs to be specified")
 parser.add_argument('--input_file', action='store', type=str, nargs='?', help='name of Bracken output file')
 parser.add_argument('--input_list', action='store', type=str, nargs='?', help='name of file containing a list of Bracken output files')
 parser.add_argument('--suffix', action='store', type=str, default='_microwine.tsv', help='suffix for the output file, default: "_microwine.tsv"')
+
 args = parser.parse_args()
 
-
+if len(sys.argv)==1:    # display help message when no args are passed.
+    parser.print_help()
+    sys.exit(1)
 
 def get_taxonomy(taxlevels, ncbi, taxid, t_level, name, taxlevels_dict):
     lineage = ncbi.get_lineage(taxid)
@@ -42,7 +43,7 @@ def get_taxonomy(taxlevels, ncbi, taxid, t_level, name, taxlevels_dict):
 
 def convert_file_format(taxlevels, ncbi, ncbi_taxonomy_dict, taxlevels_dict, filename):
     in_df = pd.read_csv(filename, header=0, sep='\t')
-    df = pd.DataFrame(columns = ['R_Abundance (%)', 'Reads'] + taxlevels)
+    df = pd.DataFrame(columns = ['rel_abundance', 'abs_abundance'] + taxlevels)
     for idx in in_df.index:
         taxid = in_df.loc[idx,'taxonomy_id']
         abund = [str(item) for item in in_df.loc[idx,['fraction_total_reads', 'new_est_reads']].tolist()]
@@ -54,12 +55,11 @@ def convert_file_format(taxlevels, ncbi, ncbi_taxonomy_dict, taxlevels_dict, fil
     return df
 
 def save_dataframe(df, new_filename):
-    df.to_csv(new_filename, sep='\t',  header=True, index=False)
+    df.to_csv(new_filename, sep='\t', index=False)
 
 ncbi = NCBITaxa()
 ncbi_taxonomy_dict = dict()
 
-#taxlevels = ['species', 'genus', 'family', 'order', 'class', 'phylum', 'superkingdom']
 taxlevels = ['superkingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
 taxlevels_dict = {'D':'superkingdom', 'P':'phylum', 'C':'class', 'O':'order', 'F':'family' ,'G':'genus' ,'S':'species'}
 
@@ -72,5 +72,4 @@ elif args.input_list:
     with open (args.input_list, 'r') as infile:
         for filename in infile:
             df = convert_file_format(taxlevels, ncbi, ncbi_taxonomy_dict, taxlevels_dict, filename.strip())
-            save_dataframe(df, '.'.join(filename.split('.')[:-1])++args.suffix)
-    
+            save_dataframe(df, '.'.join(filename.split('.')[:-1])+args.suffix)
