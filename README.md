@@ -21,20 +21,17 @@ MicroWineBar only works on **MacOS** and **Linux**. It uses the Python package s
 
 prerequisites:	Python >=3.6
 
-recommended is anaconda:     
-    download [anaconda](https://www.anaconda.com/distribution/#download-section) and install as described there   
-or miniconda:   
-	download [miniconda](https://docs.conda.io/en/latest/miniconda.html) and install as described there  
-but one can also use another Python installation
+Recommended is [anaconda](https://www.anaconda.com/distribution/#download-section) (download and install as described there) or [miniconda](https://docs.conda.io/en/latest/miniconda.html) (download and install as described there) but one can also use another Python installation.
 
 ##### Python virtual environment
 It is also recommended to set up a Python environment. I experienced problems with matplotlib version 3.1.x.   
 If you are using anaconda, virtualenv is already installed, otherwise you need to run `pip install virtualenv` to install it. To set up a Python environment open a terminal and type `virtualenv NAMEOFYOURTESTENV` and change NAMEOFYOURTESTENV to your preferred name of the environment.   
 To activate your python environment type `source NAMEOFYOURTESTENV/bin/activate`.   
-Inside you environment you can install and run MicroWineBar. Afterwards deactivate the environment by typing `deactivate`.
+Inside your environment you can install and run MicroWineBar. Afterwards deactivate the environment by typing `deactivate`.
 
 #### Install MicroWineBar
-Note: Remember to activate you Python environment if you use one.
+> Note: Remember to activate your Python environment if you use one.
+
 Open a terminal and simply type
 	`pip install microwinebar`
 
@@ -47,23 +44,19 @@ additinal Python packages:
 * numpy: open a terminal and type `pip install numpy`
 * pandas: open a terminal and type `pip install pandas`
 
-Note: Remember to deactivate you Python environment if you use one.
+> Note: Remember to deactivate your Python environment if you use one.
 
 ## Usage
-Note: Remember to activate you Python environment if you use one.
-Open a terminal and type `microwinebar` to start MicroWineBar.  
-Note: Remember to deactivate you Python environment if you use one.
+
+> Note: Remember to activate your Python environment if you use one.
+
+Open a terminal and type `microwinebar` to start MicroWineBar.
+
+> Note: Remember to deactivate your Python environment if you use one.
 
 ## Input formats
 
-[](Tab delimited files from programs that estimate abundances of microbial organisms from metagenomics samples such as MGmapper, Bracken or MetaPhlAn. These files contain absolute (and relative) [](abundances with taxonomic annotations.)
-MicroWineBar was designed for species abundance tables from shotgun metagenomics data but it can also be used for other types of hierarchical data. The tab-delimietd files contain absolute (and relative) abundances with taxonomic annotations.
-
-[//]: test
-
-[^Comment]:  Text
-
-<!-- MGmapper, Bracken (Kraken) or MetaPhlAn -->
+MicroWineBar was designed for species abundance tables from shotgun metagenomics data but can also be used for other types of hierarchical data. The tab-delimited files contain absolute and/or relative abundances with taxonomic annotations (or other hierarchical data). As MicroWineBar is not tight to any specific program which generates species abundance tables, one needs to prepare the input:
 
 
 #### Prepare Input
@@ -73,6 +66,7 @@ Scripts for preparing input are provided:
 * build_table_from_mgmapper_positive.py   
   Takes [MGmapper](https://bitbucket.org/genomicepidemiology/mgmapper/src/master/) output and combines the output from several databases into one table
 *
+  Takes [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) output and transforms it into readable format for MicroWineBar
 
 
 ## Import data
@@ -91,7 +85,9 @@ Scripts for preparing input are provided:
 
 In the directory ExampleData one can find the first samples of the wine dataset from fermentations of Bobal grapes. These files were created with MGmapper and then running the script build_table_from_mgmapper_positive.py.
 To analyse these files one has to start MicroWineBar and in the **File**-menu choose **Open file(s) with relative & absolute counts** which opens a file dialog to open the files.
-Then one should filter the non-microorganisms by clicking on the **Overview**-menu and then choose **filter**. This opens a table with all species present in the samples. To sort the rows (species) by one column one has to click on the header, e.g. click in Phylum to sort by phylum name. To hide all species belonging to the phylum *Streptophyta* one has to right click in the column Phylum in a row where hide is False. Then a popup menu will appear where one has to click on **hide/show**. If in the row hide is False all *Streptohyta* will be displayed, if one right clicks on Streptophyta and in the popup menu chooses **hide/show**.
+Then one should filter the non-microorganisms by clicking on the **Overview**-menu and then choose **filter**. This opens a table with all species present in the samples. To sort the rows (species) by one column one has to click on the header, e.g. click in Phylum to sort by phylum name. To hide all species belonging to the phylum *Streptophyta* one has to right-click in the column Phylum in a row where hide is False. Then a popup menu will appear where one has to click on **hide/show**. If in the row hide is False all *Streptohyta* will be displayed, if one right clicks on Streptophyta and in the popup menu chooses **hide/show**.
+
+> **Note for Linux users:** right-clicking to open a popup menu will only show the menu as long as one clicks.
 
 To compare two groups of samples choose **Compare two groups of samples** in the **Overview**-menu.
 
