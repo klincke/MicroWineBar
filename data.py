@@ -106,7 +106,6 @@ class Abundances():
         #     self.abundance_df.drop(i, inplace=True)
         self.abundance_raw_df = None
         return self.tax_levels
-
     
     
     def addAbsSample(self, sample_name, filename):
@@ -121,7 +120,7 @@ class Abundances():
             self.abundance_df = self.abundance_df[[self.abundance_df.columns[0]] + self.tax_levels]
             print(abundance_df.head)
             print(total_count)
-            self.abundance_df[cols[0]] = self.abundance_df[cols[0]].divide(total_count)
+            self.abundance_df[cols[0]] = self.abundance_df[cols[0]].divide(total_count)*100
             self.abundance_df.rename(columns={self.abundance_df.columns[0]:sample_name}, inplace=True)
             self.abundance_df.index = self.abundance_df[self.tax_levels[0]]+'_'
             self.abundance_df.index.name = None 
@@ -138,7 +137,7 @@ class Abundances():
             sample_raw_df.rename(columns={sample_raw_df.columns[0]:sample_name}, inplace=True)  
             sample_raw_df.index = sample_raw_df[self.tax_levels[0]]+'_'
             sample_raw_df.index.name = None
-            sample_df[sample_df.columns[0]] = sample_df[sample_df.columns[0]].divide(total_count)
+            sample_df[sample_df.columns[0]] = sample_df[sample_df.columns[0]].divide(total_count)*100
             sample_df.rename(columns={sample_df.columns[0]:sample_name}, inplace=True)  
             sample_df.index = sample_df[self.tax_levels[0]]+'_'
             sample_df.index.name = None 
