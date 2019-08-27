@@ -12,6 +12,8 @@ MicroWineBar is a graphical tool for analysing metagenomic sequencing samples.
 
 Copyright (c) 2019 Franziska Klincke
 
+For more information read the [paper on bioRxiv](https://www.biorxiv.org/content/10.1101/742684v1) (doi: 10.1101/742684).
+
 
 ## Installation
 
@@ -67,7 +69,6 @@ Scripts for preparing input are provided:
   Takes [MGmapper](https://bitbucket.org/genomicepidemiology/mgmapper/src/master/) output and combines the output from several databases into one table
 * metaphlan2microwinebar.py
   Takes [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) output and transforms it into readable format for MicroWineBar
-
 
 ## Import data
 * If one has data with both **absolute and relative counts**, one should choose in the **file**-menu **Open file(s) with relative & absolute counts**.
