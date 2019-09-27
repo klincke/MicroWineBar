@@ -69,6 +69,7 @@ Scripts for preparing input are provided:
   Takes [MGmapper](https://bitbucket.org/genomicepidemiology/mgmapper/src/master/) output and combines the output from several databases into one table
 * metaphlan2microwinebar.py
   Takes [MetaPhlAn](http://huttenhower.sph.harvard.edu/metaphlan) output and transforms it into readable format for MicroWineBar
+  To use results from [CLARK](http://clark.cs.ucr.edu) one has to run the script `estimate_abundance.sh` (part of CLARK) with the option `--mpa` which gives results in MetaPhlan's mpa format. One can then use this as input for `metaphlan2microwinebar.py`
 
 ## Import data
 * If one has data with both **absolute and relative counts**, one should choose in the **file**-menu **Open file(s) with relative & absolute counts**.
